@@ -11,7 +11,7 @@ from digitalio import Direction, Pull
 from RPi import GPIO
 from adafruit_mcp230xx.mcp23017 import MCP23017
 
-from model_single import Model
+from model import Model
 
 class MainWindow(qtw.QMainWindow): 
     # Most of this module is analogous to svelte Panel
@@ -84,7 +84,7 @@ class MainWindow(qtw.QMainWindow):
         # Initialize the I2C bus:
         i2c = busio.I2C(board.SCL, board.SDA)
         self.mcp = MCP23017(i2c) # default address-0x20
-        self.mcpRing = MCP23017(i2c, address=0x22)
+        # self.mcpRing = MCP23017(i2c, address=0x22)
         self.mcpLed = MCP23017(i2c, address=0x21)
 
         # -- Make a list of pins for each bonnet, set input/output --
@@ -98,9 +98,9 @@ class MainWindow(qtw.QMainWindow):
         #     self.pins[pinIndex].pull = Pull.UP
 
         # Stereo "ring" which will detect 1st vs 2nd line
-        self.pinsRing = []
-        for pinIndex in range(0, 12):
-            self.pinsRing.append(self.mcpRing.get_pin(pinIndex))
+        # self.pinsRing = []
+        # for pinIndex in range(0, 12):
+        #     self.pinsRing.append(self.mcpRing.get_pin(pinIndex))
         # # Set to input
         # for pinIndex in range(0, 12):
         #     self.pinsRing[pinIndex].direction = Direction.INPUT
@@ -113,7 +113,7 @@ class MainWindow(qtw.QMainWindow):
         for pinIndex in range(0, 12):
             self.pinsLed.append(self.mcpLed.get_pin(pinIndex))
         # In Reset
-        # # Set to output
+        # Set to output
         # for pinIndex in range(0, 12):
         #    self.pinsLed[pinIndex].switch_to_output(value=False)
 
@@ -208,10 +208,10 @@ class MainWindow(qtw.QMainWindow):
             self.pins[pinIndex].direction = Direction.INPUT
             self.pins[pinIndex].pull = Pull.UP
 
-        # Set to input
-        for pinIndex in range(0, 12):
-            self.pinsRing[pinIndex].direction = Direction.INPUT
-            self.pinsRing[pinIndex].pull = Pull.UP
+        # # Set to input
+        # for pinIndex in range(0, 12):
+        #     self.pinsRing[pinIndex].direction = Direction.INPUT
+        #     self.pinsRing[pinIndex].pull = Pull.UP
 
         # Set to output
         for pinIndex in range(0, 12):
@@ -224,7 +224,10 @@ class MainWindow(qtw.QMainWindow):
         if self.blinkTimer.isActive():
             self.blinkTimer.stop()            
         if self.wiggleTimer.isActive():
-            self.wiggleTimer.stop()            
+            self.wiggleTimer.stop()  
+
+        self.setLED(9, True)          
+        self.setLED(10, True)          
 
     def continueCheckPin(self):
         # Not able to send param through timer, so pinFlag has been set globaly
@@ -305,8 +308,8 @@ class MainWindow(qtw.QMainWindow):
         self.pinsLed[flagIdx].value = onOrOff     
 
     def blinker(self):
-        # print("blinking")
         self.pinsLed[self.pinToBlink].value = not self.pinsLed[self.pinToBlink].value
+        # print("blinking value: " + str(self.pinsLed[self.pinToBlink].value))
         
     def startBlinker(self, personIdx):
         self.pinToBlink = personIdx
