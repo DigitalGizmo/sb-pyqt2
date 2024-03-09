@@ -22,7 +22,7 @@ class Model(qtc.QObject):
     # The following signal is local
     nextEvent = qtc.pyqtSignal(int)
     requestCorrectEvent = qtc.pyqtSignal()
-    checkPinsInEvent = qtc.pyqtSignal()
+    checkPinsInEvent = qtc.pyqtSignal() # Doesn't seem to be used
 
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
@@ -65,9 +65,8 @@ class Model(qtc.QObject):
 
         # Put pinsIn here in model where it's used more often
         # rather than in control which would require a lot of signaling.
-        # pinsIn needs to hold lineIndex, 0 or 1. -1 the default aka false
-        # self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
-        self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
+        self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
+        # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
         self.currConvo = 0
         self.currCallerIndex = 0
@@ -125,11 +124,20 @@ class Model(qtc.QObject):
         self.vlcPlayers[0].stop()
         self.vlcPlayers[1].stop()
 
-    def setPinInLine(self, pinIdx, lineIdx):
-        self.pinsInLine[pinIdx] = lineIdx
+    # remove
+    # def setPinInLine(self, pinIdx, lineIdx):
+    #     self.pinsInLine[pinIdx] = lineIdx
 
-    def getPinInLine(self, pinIdx):
-        return self.pinsInLine[pinIdx]
+    def setPinIn(self, pinIdx, value):
+        self.pinsIn[pinIdx] = value
+
+    # Remove
+    # def getPinInLine(self, pinIdx):
+    #     return self.pinsInLine[pinIdx]
+    
+    # Doesn't seem to be used
+    def getIsPinIn(self, pinIdx):
+        return self.pinsIn[pinIdx]
 
     def initiateCall(self):
         self.incrementJustCalled = False
@@ -331,26 +339,29 @@ class Model(qtc.QObject):
         # self.playHello(_currConvo, lineIdx)
 
     # def handlePlugIn(self, pluggedIdxInfo):
-    def handlePlugIn(self, pluggedIdxInfo):
+    def handlePlugIn(self, personIdx):
         """triggered by control.py
         """
-        personIdx = pluggedIdxInfo['personIdx']
-        lineIdx = pluggedIdxInfo['lineIdx']
+        # personIdx = pluggedIdxInfo['personIdx']
+        # lineIdx = pluggedIdxInfo['lineIdx']
+        lineIdx = 0
 
-		# ********
-		# Fresh plug-in -- aka caller not plugged
-		# *******/
-		# Is this new use of this line -- caller has not been plugged in.
+        # ********
+        # Fresh plug-in -- aka caller not plugged
+        # *******/
+        # Is this new use of this line -- caller has not been plugged in.
 
-        print(f'Start handlePlugIn, line: {lineIdx}'
-              f' caller is plugged: {self.phoneLines[lineIdx]["caller"]["isPlugged"]}')
+        print(f'Start handlePlugIn, personIdx: {personIdx}'
+              f' is caller plugged: {self.phoneLines[lineIdx]["caller"]["isPlugged"]}')
         if (not self.phoneLines[lineIdx]["caller"]["isPlugged"]): # New line - Caller not plugged
             # Did user plug into the actual caller?
             if personIdx == self.currCallerIndex: # Correct caller
                 # Turn this LED on
                 self.ledEvent.emit(personIdx, True)
                 # Set this person's jack to plugged
-                self.setPinInLine(personIdx, lineIdx)
+                # self.setPinInLine(personIdx, lineIdx)
+                self.setPinIn(personIdx, True)
+
                 # Set this line as having caller plugged
                 self.phoneLines[lineIdx]["caller"]["isPlugged"] = True
                 # Set identity of caller on this line
@@ -437,7 +448,8 @@ class Model(qtc.QObject):
 				# Whether or not this is correct callee -- turn LED on.
                 self.ledEvent.emit(personIdx, True)
                 # Set pinsIn True
-                self.setPinInLine(personIdx, lineIdx)
+                # self.setPinInLine(personIdx, lineIdx)
+                self.setPinIn(personIdx, True)
 				# Stop the hello operator track,  whether this is the correct
                 # callee or not
                 self.vlcPlayers[lineIdx].stop()
@@ -641,8 +653,9 @@ class Model(qtc.QObject):
 
 
         # After all is said and done, this was unplugged, So, set pinIn False
-        self.setPinInLine(personIdx, -1)
-        print(f"pin {personIdx} is now {self.pinsInLine[personIdx]}")
+        # self.setPinInLine(personIdx, -1)
+        self.setPinIn(personIdx, False)
+        print(f"pin {personIdx} is now {self.pinsIn[personIdx]}")
 
 
     def setCallCompleted(self, event, lineIndex): #, _currConvo, lineIndex

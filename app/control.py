@@ -18,7 +18,7 @@ class MainWindow(qtw.QMainWindow):
 
     startPressed = qtc.pyqtSignal()
     plugEventDetected = qtc.pyqtSignal()
-    plugInToHandle = qtc.pyqtSignal(dict)
+    plugInToHandle = qtc.pyqtSignal(int)
     unPlugToHandle = qtc.pyqtSignal(int, int)
     wiggleDetected = qtc.pyqtSignal()
 
@@ -33,13 +33,13 @@ class MainWindow(qtw.QMainWindow):
         # self.label.setText("Keep your ears open for incoming calls! ")
         self.label.setAlignment(qtc.Qt.AlignTop)
 
-        # Large text
-        self.label.setFont(QFont('Arial',30))
-        self.setGeometry(20,80,1200,400)
+        # # Large text
+        # self.label.setFont(QFont('Arial',30))
+        # self.setGeometry(20,80,1200,400)
 
-        # # Small text for debug
-        # self.label.setFont(QFont('Arial',16))
-        # self.setGeometry(15,80,600,250)
+        # Small text for debug
+        self.label.setFont(QFont('Arial',16))
+        self.setGeometry(15,80,600,250)
 
 
         self.setCentralWidget(self.label)
@@ -216,7 +216,7 @@ class MainWindow(qtw.QMainWindow):
 
             # Send plugin info to model.py as a dict 
             # Model uses signals for LED, text and pinsIn to set here
-            self.plugInToHandle.emit({"personIdx": self.pinFlag, "lineIdx": self.whichLinePlugging})
+            self.plugInToHandle.emit(self.pinFlag)
         else: # pin flag True, still, or again, high
             # was this a legit unplug?
             # if (self.pinsIn[self.pinFlag]): # was plugged in
