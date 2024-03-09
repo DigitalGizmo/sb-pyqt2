@@ -222,14 +222,14 @@ class MainWindow(qtw.QMainWindow):
             # if (self.pinsIn[self.pinFlag]): # was plugged in
 
             # if (self.model.getPinsIn(self.pinFlag)):
-            if (self.model.getPinInLine(self.pinFlag) >= 0):
+            if (self.model.getIsPinIn(self.pinFlag)):
                 # print(f"Pin {self.pinFlag} has been disconnected \n")
 
                 # Need to indirectly determine which line is being unpluged.
                 # Cant't test directly bcz stereo ring is no longer in place
                 # pinsIn : instead of True/False make it hold line index
 
-                print(f" ++ pin {self.pinFlag} was in on line {self.model.getPinInLine(self.pinFlag)}")
+                print(f" ++ pin {self.pinFlag} was in.")
 
                 # On unplug we can't tell which line electonicaly 
                 # (diff in shaft is gone), so rely on pinsIn info
