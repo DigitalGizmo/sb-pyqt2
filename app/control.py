@@ -79,8 +79,6 @@ class MainWindow(qtw.QMainWindow):
         self.model.blinkerStop.connect(self.stopBlinker)
         # self.model.checkPinsInEvent.connect(self.checkPinsIn)
 
-
-
         # Initialize the I2C bus:
         i2c = busio.I2C(board.SCL, board.SDA)
         self.mcp = MCP23017(i2c) # default address-0x20
@@ -92,19 +90,7 @@ class MainWindow(qtw.QMainWindow):
         self.pins = []
         for pinIndex in range(0, 16):
             self.pins.append(self.mcp.get_pin(pinIndex))
-        # # Set to input - later will get intrrupt as well
-        # for pinIndex in range(0, 16):
-        #     self.pins[pinIndex].direction = Direction.INPUT
-        #     self.pins[pinIndex].pull = Pull.UP
-
-        # Stereo "ring" which will detect 1st vs 2nd line
-        # self.pinsRing = []
-        # for pinIndex in range(0, 12):
-        #     self.pinsRing.append(self.mcpRing.get_pin(pinIndex))
-        # # Set to input
-        # for pinIndex in range(0, 12):
-        #     self.pinsRing[pinIndex].direction = Direction.INPUT
-        #     self.pinsRing[pinIndex].pull = Pull.UP
+        # Will be initiallized to pull.up in reset()
 
         # LEDs 
         # Tried to put these in the Model/logic module -- but seems all gpio
@@ -112,10 +98,7 @@ class MainWindow(qtw.QMainWindow):
         self.pinsLed = []
         for pinIndex in range(0, 12):
             self.pinsLed.append(self.mcpLed.get_pin(pinIndex))
-        # In Reset
-        # Set to output
-        # for pinIndex in range(0, 12):
-        #    self.pinsLed[pinIndex].switch_to_output(value=False)
+        # Set to output in reset()
 
         # -- Set up Tip interrupt --
         self.mcp.interrupt_enable = 0xFFFF  # Enable Interrupts in all pins
@@ -129,8 +112,6 @@ class MainWindow(qtw.QMainWindow):
         # put this in startup?
 
         self.mcp.clear_ints()  # Interrupts need to be cleared initially
-
-
         self.reset()
 
         # connect either interrupt pin to the Raspberry pi's pin 17.
@@ -172,9 +153,7 @@ class MainWindow(qtw.QMainWindow):
 
                             # else: # pin is not in, new event
 
-
                             # elif (not self.awaitingRestart):
-
 
                             # do standard check
                             self.just_checked = True
@@ -207,12 +186,6 @@ class MainWindow(qtw.QMainWindow):
         for pinIndex in range(0, 16):
             self.pins[pinIndex].direction = Direction.INPUT
             self.pins[pinIndex].pull = Pull.UP
-
-        # # Set to input
-        # for pinIndex in range(0, 12):
-        #     self.pinsRing[pinIndex].direction = Direction.INPUT
-        #     self.pinsRing[pinIndex].pull = Pull.UP
-
         # Set to output
         for pinIndex in range(0, 12):
            self.pinsLed[pinIndex].switch_to_output(value=False)
@@ -226,8 +199,8 @@ class MainWindow(qtw.QMainWindow):
         if self.wiggleTimer.isActive():
             self.wiggleTimer.stop()  
 
-        self.setLED(9, True)          
-        self.setLED(10, True)          
+        # self.setLED(10, True)          
+        # self.setLED(11, True)          
 
     def continueCheckPin(self):
         # Not able to send param through timer, so pinFlag has been set globaly
@@ -240,12 +213,6 @@ class MainWindow(qtw.QMainWindow):
             # Determine which line
             self.whichLinePlugging = 0
             # print("Stereo (Ring) pin {} aledgedly now: {}".format(self.pinFlag, self.pinsRing[self.pinFlag].value))
-
-            # # Disabling second line
-            # if (self.pinsRing[self.pinFlag].value == True):
-            #     self.whichLinePlugging = 1
-            # print(f"Pin {self.pinFlag} connected on line {self.whichLinePlugging}")
-
 
             # Send plugin info to model.py as a dict 
             # Model uses signals for LED, text and pinsIn to set here
