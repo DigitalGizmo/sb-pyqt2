@@ -34,13 +34,13 @@ class Model(qtc.QObject):
     toneMedia = toneInstace.media_new_path("/home/piswitch/Apps/sb-audio/outgoing-ring.mp3")
     tonePlayer.set_media(toneMedia)
 
-    vlcInstances = [vlc.Instance(), vlc.Instance()]
-    vlcPlayers = [vlcInstances[0].media_player_new(), vlcInstances[1].media_player_new()]
-    vlcEvents = [vlcPlayers[0].event_manager(), vlcPlayers[1].event_manager()]
+    # vlcInstances = [vlc.Instance(), vlc.Instance()]
+    # vlcPlayers = [vlcInstances[0].media_player_new(), vlcInstances[1].media_player_new()]
+    # vlcEvents = [vlcPlayers[0].event_manager(), vlcPlayers[1].event_manager()]
 
     vlcInstance = vlc.Instance()
     vlcPlayer = vlcInstance.media_player_new()
-    vlcEvent = vlcPlayer.event_manager
+    vlcEvent = vlcPlayer.event_manager()
 
     def __init__(self):
         super().__init__()
@@ -213,7 +213,7 @@ class Model(qtc.QObject):
         print(f"-- PlayFullConvo {_currConvo}, lineIndex: {lineIndex}")
         # Set callback for convo track finish
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.setCallCompleted,lineIndex) #  _currConvo, 
+            self.setCallCompleted) #  _currConvo, 
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
@@ -233,7 +233,7 @@ class Model(qtc.QObject):
         print(f"-- PlayFullConvoNoEvent {_currConvo}, lineIndex: {lineIndex}")
         # Set callback for convo track finish
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.setCallCompleted,lineIndex) #  _currConvo, 
+            self.setCallCompleted) #  _currConvo, 
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
@@ -261,7 +261,7 @@ class Model(qtc.QObject):
         # Set callback for wrongNUm track finish
 
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.startPlayRequestCorrect,lineIndex) #  _currConvo, 
+            self.startPlayRequestCorrect) #  _currConvo, 
         
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             persons[pluggedPersonIdx]["wrongNumFile"] + ".mp3")
@@ -269,11 +269,11 @@ class Model(qtc.QObject):
         self.vlcPlayer.play()
 
 
-    def startPlayRequestCorrect(self, event, lineIndex):
+    def startPlayRequestCorrect(self, event): # , lineIndex
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  _currConvo, 
 
-        self.requestCorrectLine = lineIndex
+        # self.requestCorrectLine = lineIndex
         self.requestCorrectEvent.emit()
         # self.requestCorrectTimer.start(1000)
 
@@ -286,14 +286,14 @@ class Model(qtc.QObject):
         # Transcript for correction
         self.displayText.emit(conversations[self.currConvo]["retryAfterWrongText"])
 
-        self.vlcEvents[self.requestCorrectLine].event_attach(vlc.EventType.MediaPlayerEndReached, 
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  needed to replace previous event which would keep calling this itself 
 
-        media = self.vlcInstances[self.requestCorrectLine].media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[self.currConvo]["retryAfterWrongFile"] + ".mp3")
         
-        self.vlcPlayers[self.requestCorrectLine].set_media(media)
-        self.vlcPlayers[self.requestCorrectLine].play()
+        self.vlcPlayer.set_media(media)
+        self.vlcPlayer.play()
         # At this point we hope user unplugs wrong number
         # Will be handled by "unPlug"
 
@@ -304,10 +304,10 @@ class Model(qtc.QObject):
         self.displayText.emit("Congratulations -- you finished your first shift as a switchboard operator!")
         # print(f"-- PlayFullConvo {_currConvo}, lineIndex: {lineIndex}")
 
-        media = self.vlcInstances[0].media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             "FinishedActivity.mp3")
-        self.vlcPlayers[0].set_media(media)
-        self.vlcPlayers[0].play()
+        self.vlcPlayer.set_media(media)
+        self.vlcPlayer.play()
 
     def supressCallback(self, event):
         print("supress video end callback")
@@ -382,7 +382,7 @@ class Model(qtc.QObject):
                         print(f"  - trying to stop audio ")
                         # silence request	
 
-                        self.vlcPlayers[lineIdx].stop()
+                        self.vlcPlayer.stop()
                         # set line engaged
                         self.phoneLine["unPlugStatus"] = self.NO_UNPLUG_STATUS
                         self.phoneLine["Engaged"] = True
@@ -447,7 +447,7 @@ class Model(qtc.QObject):
                 self.setPinIn(personIdx, True)
 				# Stop the hello operator track,  whether this is the correct
                 # callee or not
-                self.vlcPlayers[lineIdx].stop()
+                self.vlcPlayer.stop() # vlcPlayers[lineIdx]
                 # Set callee -- used by unPlug even if it's the wrong number
                 self.phoneLine["callee"]["index"] = personIdx
                 if (personIdx == self.currCalleeIndex): # Correct callee
@@ -498,7 +498,7 @@ class Model(qtc.QObject):
         if (self.phoneLine["isEngaged"]):
             print(f'  - Unplugging a call in progress person id: {persons[personIdx]["name"]} ' )
             # Stop the audio
-            self.vlcPlayers[lineIdx].stop()
+            self.vlcPlayer.stop()
             # Clear Transcript 
             self.displayText.emit("Call disconnected..")
 
@@ -532,7 +532,7 @@ class Model(qtc.QObject):
                 # Mark callee unplugged
                 self.phoneLine["callee"]["isPlugged"] = False
                 self.phoneLine["isEngaged"] = False
-                self.vlcPlayers[lineIdx].stop()	
+                self.vlcPlayer.stop()	
                 # Leave caller plugged in, replay hello
                 # reconnectTimer = setTimeout(playHello(currConvo, lineIdx), 3000);
                 # can't send params through timer, play static instead, with call back
@@ -598,7 +598,7 @@ class Model(qtc.QObject):
                 # if incoming person index == caller for this convo
                 if (personIdx == self.phoneLine["caller"]["index"]):
                     print("     caller unplugged")
-                    self.vlcPlayers[lineIdx].stop()
+                    self.vlcPlayer.stop() # vlcPlayers[lineIdx]
                     self.clearTheLine(lineIdx)
 
                     self.callInitTimer.start(1000)
@@ -606,7 +606,7 @@ class Model(qtc.QObject):
                 elif (self.phoneLine["unPlugStatus"] == self.WRONG_NUM_IN_PROGRESS):
                     # Unplugging wrong num
                     print(f'  Unplug on wrong number, personIdx: {personIdx}')
-                    self.vlcPlayers[lineIdx].stop()
+                    self.vlcPlayer.stop() # vlcPlayers[lineIdx]
                     # Cover for before personidx defined
                     if (personIdx < 99):
                         self.ledEvent.emit(personIdx, False)
@@ -651,7 +651,7 @@ class Model(qtc.QObject):
         print(f"pin {personIdx} is now {self.pinsIn[personIdx]}")
 
 
-    def setCallCompleted(self, event, lineIndex): #, _currConvo, lineIndex
+    def setCallCompleted(self, event): #, _currConvo, lineIndex
         # Disable callback
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  _currConvo, 
@@ -661,7 +661,7 @@ class Model(qtc.QObject):
         #       f"unplug stat of {self.phoneLines[otherLineIdx]['unPlugStatus']}")
         print(f" ** setCallCompleted. Convo: {self.currConvo}")
         # Stop call
-        self.stopCall(lineIndex)
+        self.stopCall()
 
         # # Disable multi-call
         # # Much intervening logic to handle call interruption
@@ -721,8 +721,8 @@ class Model(qtc.QObject):
         #         self.nextEvent.emit(1000)
 
 
-    def stopCall(self, lineIndex):
-        self.clearTheLine(lineIndex)
+    def stopCall(self): # , lineIndex
+        self.clearTheLine()
         # Reset volume -- in this line was silenced by interrupting call
         # self.vlcPlayers[self.prevLineInUse].audio_set_volume(100)
 
@@ -737,7 +737,7 @@ class Model(qtc.QObject):
         self.clearTheLine(lineIndex)
 
 
-    def clearTheLine(self, lineIdx):
+    def clearTheLine(self):
         # Clear the line settings
         self.phoneLine["caller"]["isPlugged"] = False
         self.phoneLine["callee"]["isPlugged"] = False
