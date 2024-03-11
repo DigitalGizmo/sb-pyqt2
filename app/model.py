@@ -38,6 +38,10 @@ class Model(qtc.QObject):
     vlcPlayers = [vlcInstances[0].media_player_new(), vlcInstances[1].media_player_new()]
     vlcEvents = [vlcPlayers[0].event_manager(), vlcPlayers[1].event_manager()]
 
+    vlcInstance = vlc.Instance()
+    vlcPlayer = vlcInstance.media_player_new()
+    vlcEvent = vlcPlayer.event_manager
+
     def __init__(self):
         super().__init__()
         self.callInitTimer = qtc.QTimer()
@@ -112,9 +116,8 @@ class Model(qtc.QObject):
 
         self.buzzPlayer.stop()
         self.tonePlayer.stop()
-        self.vlcPlayers[0].stop()
-        self.vlcPlayers[1].stop()
-
+        # self.vlcPlayers[0].stop()
+        self.vlcPlayer.stop()
     # remove
     # def setPinInLine(self, pinIdx, lineIdx):
     #     self.pinsInLine[pinIdx] = lineIdx
@@ -155,22 +158,22 @@ class Model(qtc.QObject):
 
     def playHello(self, _currConvo, lineIndex):
         print("got to playHello")
-        media = self.vlcInstances[lineIndex].media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[_currConvo]["helloFile"] + ".mp3")
-        self.vlcPlayers[lineIndex].set_media(media)
+        self.vlcPlayer.set_media(media)
         # For convo idxs 3 and 7 there is no full convo, so end after hello.
         # Attach event before playing
         if (_currConvo == 3 or  _currConvo == 7):
             print(f"** got to currConv = 3 or 7 **")
-            self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+            self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
                 self.endOperatorOnlyHello,lineIndex) #  _currConvo, 
         # Proceed with playing -- event may or may not be attached            
-        self.vlcPlayers[lineIndex].play()
+        self.vlcPlayer.play()
         # Send msg to screen
         self.displayText.emit(conversations[_currConvo]["helloText"])
 
     def endOperatorOnlyHello(self, event, lineIndex):
-            self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+            self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
                 self.supressCallback) #  supress further callbacks
             # Don't know what this did in software proto
             # setHelloOnlyCompleted(lineIndex)
@@ -209,12 +212,12 @@ class Model(qtc.QObject):
 
         print(f"-- PlayFullConvo {_currConvo}, lineIndex: {lineIndex}")
         # Set callback for convo track finish
-        self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.setCallCompleted,lineIndex) #  _currConvo, 
-        media = self.vlcInstances[lineIndex].media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[_currConvo]["convoFile"] + ".mp3")
-        self.vlcPlayers[lineIndex].set_media(media)
-        self.vlcPlayers[lineIndex].play()
+        self.vlcPlayer.set_media(media)
+        self.vlcPlayer.play()
 
 
     def playFullConvoNoEvent(self, _currConvo, lineIndex):
@@ -229,12 +232,12 @@ class Model(qtc.QObject):
 
         print(f"-- PlayFullConvoNoEvent {_currConvo}, lineIndex: {lineIndex}")
         # Set callback for convo track finish
-        self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.setCallCompleted,lineIndex) #  _currConvo, 
-        media = self.vlcInstances[lineIndex].media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[_currConvo]["convoFile"] + ".mp3")
-        self.vlcPlayers[lineIndex].set_media(media)
-        self.vlcPlayers[lineIndex].play()
+        self.vlcPlayer.set_media(media)
+        self.vlcPlayer.play()
 
 
 
@@ -257,17 +260,17 @@ class Model(qtc.QObject):
         print(f"-- PlayWrongNun person {pluggedPersonIdx}, lineIndex: {lineIndex}")
         # Set callback for wrongNUm track finish
 
-        self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.startPlayRequestCorrect,lineIndex) #  _currConvo, 
         
-        media = self.vlcInstances[lineIndex].media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             persons[pluggedPersonIdx]["wrongNumFile"] + ".mp3")
-        self.vlcPlayers[lineIndex].set_media(media)
-        self.vlcPlayers[lineIndex].play()
+        self.vlcPlayer.set_media(media)
+        self.vlcPlayer.play()
 
 
     def startPlayRequestCorrect(self, event, lineIndex):
-        self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  _currConvo, 
 
         self.requestCorrectLine = lineIndex
@@ -370,14 +373,15 @@ class Model(qtc.QObject):
 
                 #  Handle case where caller was unplugged
                 if (self.phoneLine["unPlugStatus"] == self.CALLER_UNPLUGGED):
-                    print(f"  - Caller was unplugged: {lineIdx}")
+                    print(f"  - Caller was unplugged")
                     """ more logic here  
                     """
                     if (self.phoneLine["callee"]["isPlugged"] < 90):
                         # if (correct callee??)
                         # Stop Hello/Request
-                        print(f"  - trying to stop audio on : {lineIdx}")
+                        print(f"  - trying to stop audio ")
                         # silence request	
+
                         self.vlcPlayers[lineIdx].stop()
                         # set line engaged
                         self.phoneLine["unPlugStatus"] = self.NO_UNPLUG_STATUS
@@ -649,7 +653,7 @@ class Model(qtc.QObject):
 
     def setCallCompleted(self, event, lineIndex): #, _currConvo, lineIndex
         # Disable callback
-        self.vlcEvents[lineIndex].event_attach(vlc.EventType.MediaPlayerEndReached, 
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  _currConvo, 
                 
         # otherLineIdx = 1 if (lineIndex == 0) else 0
