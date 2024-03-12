@@ -19,7 +19,7 @@ class MainWindow(qtw.QMainWindow):
     startPressed = qtc.pyqtSignal()
     plugEventDetected = qtc.pyqtSignal()
     plugInToHandle = qtc.pyqtSignal(int)
-    unPlugToHandle = qtc.pyqtSignal(int, int)
+    unPlugToHandle = qtc.pyqtSignal(int)
     wiggleDetected = qtc.pyqtSignal()
 
     def __init__(self):
@@ -47,7 +47,7 @@ class MainWindow(qtw.QMainWindow):
         self.model = Model()
 
         # ------ phone call logic------
-        self.whichLinePlugging = -1
+        # self.whichLinePlugging = -1
 
         # --- timers --- 
         self.bounceTimer=qtc.QTimer()
@@ -211,7 +211,7 @@ class MainWindow(qtw.QMainWindow):
             """False/grouded, then this event is a plug-in
             """
             # Determine which line
-            self.whichLinePlugging = 0
+            # self.whichLinePlugging = 0
             # print("Stereo (Ring) pin {} aledgedly now: {}".format(self.pinFlag, self.pinsRing[self.pinFlag].value))
 
             # Send plugin info to model.py as a dict 
@@ -233,7 +233,7 @@ class MainWindow(qtw.QMainWindow):
 
                 # On unplug we can't tell which line electonicaly 
                 # (diff in shaft is gone), so rely on pinsIn info
-                self.unPlugToHandle.emit(self.pinFlag, self.whichLinePlugging)
+                self.unPlugToHandle.emit(self.pinFlag) # , self.whichLinePlugging
                 # Model handleUnPlug will set pinsIn false for this on
 
             else:

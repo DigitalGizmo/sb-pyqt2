@@ -79,7 +79,7 @@ class Model(qtc.QObject):
         # self.prevLineInUse = -1
 
         self.incrementJustCalled = False
-        self.reCallLine = 0 # Workaround timer not having params
+        # self.reCallLine = 0 # Workaround timer not having params
         self.silencedCallLine = 0 # Workaround timer not having params
         # self.requestCorrectLine = 0 # Workaround timer not having params
         # self.interruptingCallInHasBeenInitiated = False
@@ -241,15 +241,15 @@ class Model(qtc.QObject):
 
 
 
-    def playWrongNum(self, pluggedPersonIdx, lineIndex):
-        print(f"got to play wrong number, lineIndex: {lineIndex}, currConvo: {self.currConvo}")
+    def playWrongNum(self, pluggedPersonIdx): # , lineIndex
+        print(f"got to play wrong number, currConvo: {self.currConvo}")
         # Long VLC way of creating callback
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.playFullWrongNum, pluggedPersonIdx, lineIndex) # playFullConvo(currConvo, lineIndex)
+            self.playFullWrongNum, pluggedPersonIdx) # playFullConvo(currConvo, lineIndex)
         self.tonePlayer.set_media(self.toneMedia)
         self.tonePlayer.play()
 
-    def playFullWrongNum(self, event, pluggedPersonIdx, lineIndex):
+    def playFullWrongNum(self, event, pluggedPersonIdx): # , lineIndex
         # wrongNumFile = persons[pluggedPersonIdx]["wrongNumFile"]
         # disable event
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
@@ -257,7 +257,7 @@ class Model(qtc.QObject):
 
         self.displayText.emit(persons[pluggedPersonIdx]["wrongNumText"])
 
-        print(f"-- PlayWrongNun person {pluggedPersonIdx}, lineIndex: {lineIndex}")
+        print(f"-- PlayWrongNun person {pluggedPersonIdx}")
         # Set callback for wrongNUm track finish
 
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
@@ -315,10 +315,10 @@ class Model(qtc.QObject):
     def setTimeToNext(self, timeToWait):
         self.callInitTimer.start(timeToWait)        
 
-    def setTimeReCall(self, _currConvo, lineIdx):
+    def setTimeReCall(self, _currConvo): # , lineIdx
         print("got to setTimeReCall")
         # Hack: set reCallLine globally bcz I can't send params thru timer
-        self.reCallLine = lineIdx
+        # self.reCallLine = lineIdx
         # currConvo is already global
         self.reconnectTimer.start(1000)
         # recconectTimer will call reCall
@@ -326,7 +326,7 @@ class Model(qtc.QObject):
     def reCall(self):
         print("got to reCall")
         # Hack: receives reCallLine globally 
-        self.playHello(self.currConvo, self.reCallLine)
+        self.playHello(self.currConvo) #, self.reCallLine
         # calling playHello direclty with callback would send event param
         # self.vlcPlayers[lineIdx].stop()
         # self.nextEvent.emit(1000)
@@ -481,14 +481,14 @@ class Model(qtc.QObject):
                 print("wrong number")
                 self.phoneLine["unPlugStatus"] = self.WRONG_NUM_IN_PROGRESS
 
-                self.playWrongNum(personIdx, lineIdx)
+                self.playWrongNum(personIdx) # , lineIdx
         
 
-    def handleUnPlug(self, personIdx, lineIdx):
+    def handleUnPlug(self, personIdx): # , lineIdx
         """ triggered by control.py
         Need lineIdx!!
         """
-        print(f" Unplug line {lineIdx} with status of: {self.phoneLine['unPlugStatus']} "
+        print(f" Unplug with status of: {self.phoneLine['unPlugStatus']} "
                f"while line isEngaged = {self.phoneLine['isEngaged']}/n"
                f"    unplugger index of {personIdx}"
             )
@@ -536,7 +536,7 @@ class Model(qtc.QObject):
                 # Leave caller plugged in, replay hello
                 # reconnectTimer = setTimeout(playHello(currConvo, lineIdx), 3000);
                 # can't send params through timer, play static instead, with call back
-                self.setTimeReCall(self.currConvo, lineIdx)
+                self.setTimeReCall(self.currConvo) # , lineIdx
                 # playHello(currConvo, lineIdx);
             elif (self.phoneLine["caller"]["index"] == personIdx): # caller unplugged
                 print(" Caller just unplugged")
