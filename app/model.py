@@ -72,7 +72,7 @@ class Model(qtc.QObject):
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
-        self.currConvo = 0
+        self.currConvo = 2
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -149,7 +149,7 @@ class Model(qtc.QObject):
             self.blinkerStart.emit(conversations[self.currConvo]["caller"]["index"])
             self.displayText.emit("Incoming call..")
             
-            print(f'-- New convo {self.currConvo} being initiated by: ' 
+            print(f'*New convo {self.currConvo} being initiated by: ' 
                     f'{persons[conversations[self.currConvo]["caller"]["index"]]["name"]}')
         else:
             # Play congratulations
@@ -157,7 +157,7 @@ class Model(qtc.QObject):
             self.playFinished()
 
     def playHello(self, _currConvo): # , lineIndex
-        print("got to playHello")
+        # print(" -- got to playHello")
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[_currConvo]["helloFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
@@ -186,7 +186,7 @@ class Model(qtc.QObject):
         """
         This just plays the outgoing tone and then starts the full convo
         """
-        print(f"got to play convo, currConvo: {currConvo}")
+        print(f" -- got to play convo, currConvo: {currConvo}")
         # Long VLC way of creating callback
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.playFullConvo, currConvo) # playFullConvo(currConvo, lineIndex)
@@ -310,7 +310,7 @@ class Model(qtc.QObject):
         self.vlcPlayer.play()
 
     def supressCallback(self, event):
-        print("supress video end callback")
+        print("     supress video end callback")
 
     def setTimeToNext(self, timeToWait):
         self.callInitTimer.start(timeToWait)        
@@ -345,7 +345,7 @@ class Model(qtc.QObject):
         # *******/
         # Is this new use of this line -- caller has not been plugged in.
 
-        print(f'Start handlePlugIn, personIdx: {personIdx}'
+        print(f' - *Start handlePlugIn, personIdx: {personIdx}'
               f' is caller plugged: {self.phoneLine["caller"]["isPlugged"]}')
         if (not self.phoneLine["caller"]["isPlugged"]): # New line - Caller not plugged
             # Did user plug into the actual caller?
@@ -360,7 +360,7 @@ class Model(qtc.QObject):
                 self.phoneLine["caller"]["isPlugged"] = True
                 # Set identity of caller on this line
                 self.phoneLine["caller"]["index"] = personIdx;				
-                print(f' - Just set caller {self.phoneLine["caller"]["index"]} to True')
+                # print(f' - Just set caller {self.phoneLine["caller"]["index"]} to True')
                 # Set this line in use only we have gotten this success
                 # self.whichLineInUse = lineIdx
                 # See software app for extended debug message here
@@ -451,7 +451,7 @@ class Model(qtc.QObject):
             # Set callee -- used by unPlug even if it's the wrong number
             self.phoneLine["callee"]["index"] = personIdx
             if (personIdx == self.currCalleeIndex): # Correct callee
-                print(f"plugged into correct callee, idx: {personIdx}")
+                print(f" - Plugged into correct callee, idx: {personIdx}")
                 # Set this line as engaged
                 self.phoneLine["isEngaged"] = True
                 # Also set line callee plugged
@@ -488,9 +488,8 @@ class Model(qtc.QObject):
         """ triggered by control.py
         Need lineIdx!!
         """
-        print(f" Unplug with status of: {self.phoneLine['unPlugStatus']} "
-               f"while line isEngaged = {self.phoneLine['isEngaged']}/n"
-               f"    unplugger index of {personIdx}"
+        print( f" - Index {personIdx} Unplugged with line status of: {self.phoneLine['unPlugStatus']}\n"
+               f"     while line isEngaged = {self.phoneLine['isEngaged']}"
             )
         # if not during restart!
 
@@ -697,7 +696,7 @@ class Model(qtc.QObject):
         # Workaround to stop double calling
         if not self.incrementJustCalled:
             self.incrementJustCalled = True
-            print(f'  increment from {self.currConvo} and start regular timer for next call.')
+            print(f' -  increment from {self.currConvo} and start regular timer for next call.')
             # Uptick currConvo here, when call is comlete
             self.currConvo += 1
             # Use signal rather than calling callInitTimer bcz threads

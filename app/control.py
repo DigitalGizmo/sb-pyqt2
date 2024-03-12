@@ -128,7 +128,7 @@ class MainWindow(qtw.QMainWindow):
             """
             for pin_flag in self.mcp.int_flag:
                 # print("Interrupt connected to Pin: {}".format(port))
-                print(f"Interrupt - pin number: {pin_flag} changed to: {self.pins[pin_flag].value}")
+                print(f" - Interrupt - pin number: {pin_flag} changed to: {self.pins[pin_flag].value}")
 
                 # Test for phone jack vs start and stop buttons
                 if (pin_flag < 12):
@@ -249,7 +249,7 @@ class MainWindow(qtw.QMainWindow):
 
 
     def delayedFinishCheck(self):
-        print("delayed finished check \n")
+        print(" -- delayed finished check \n")
         self.just_checked = False
 
         # Experimental
