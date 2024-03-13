@@ -128,7 +128,7 @@ class MainWindow(qtw.QMainWindow):
             """
             for pin_flag in self.mcp.int_flag:
                 # print("Interrupt connected to Pin: {}".format(port))
-                print(f" - Interrupt - pin number: {pin_flag} changed to: {self.pins[pin_flag].value}")
+                print(f"* Interrupt - pin number: {pin_flag} changed to: {self.pins[pin_flag].value}")
 
                 # Test for phone jack vs start and stop buttons
                 if (pin_flag < 12):
@@ -143,27 +143,26 @@ class MainWindow(qtw.QMainWindow):
                             # Disabling wiggle check
                             # # If this pin is in, delay before checking
                             # # to protect against inadvertent wiggle
-                            # # if (self.pinsIn[pin_flag]):
-                            # # if (self.model.getPinsIn(pin_flag)):
-                            # if (self.model.getPinInLine(pin_flag) >= 0):
+                            if (self.model.getIsPinIn(pin_flag) == True):
 
-                            #     print(f" ++ pin {pin_flag} is already in")
-                            #     # This will trigger a pause
-                            #     self.wiggleDetected.emit()
+                                print(f" ** pin {pin_flag} is already in - so wiggle wait")
+                                # This will trigger a pause
+                                self.wiggleDetected.emit()
 
-                            # else: # pin is not in, new event
+                            else: # pin is not in, new event
 
-                            # elif (not self.awaitingRestart):
+                                # elif (not self.awaitingRestart):
 
-                            # do standard check
-                            self.just_checked = True
-                            # The following signal starts a timer that will continue
-                            # the check. This provides bounce protection
-                            # This signal is separate from the main python event loop
-                            self.plugEventDetected.emit()
+                                # do standard check
+                                self.just_checked = True
+                                # The following signal starts a timer that will continue
+                                # the check. This provides bounce protection
+                                # This signal is separate from the main python event loop
+                                # This emit will start bounc_timer with 300
+                                self.plugEventDetected.emit()
 
                         else: # awaiting restart
-                            print("pin activity while awaiting restart")
+                            print(" ** pin activity while awaiting restart")
                             self.just_checked = False
 
                 else:
@@ -172,8 +171,8 @@ class MainWindow(qtw.QMainWindow):
                         # if (self.pins[13].value == False):
                         self.startPressed.emit()
                     # self.pinsLed[0].value = True
-
-        GPIO.add_event_detect(interrupt, GPIO.BOTH, callback=checkPin, bouncetime=100)
+        # As of 2024-03-23 bounctime had been 100, changed to 150
+        GPIO.add_event_detect(interrupt, GPIO.BOTH, callback=checkPin, bouncetime=150)
 
     def reset(self):
         self.label.setText("Press the Start button to begin!")
@@ -204,20 +203,22 @@ class MainWindow(qtw.QMainWindow):
 
     def continueCheckPin(self):
         # Not able to send param through timer, so pinFlag has been set globaly
-        # print("In continue, pinFlag = " + str(self.pinFlag) + " val: " +
-        #       str(self.pins[self.pinFlag].value))
+        print(f" * In continue, pinFlag = {str(self.pinFlag)} " 
+              f"  * value: {str(self.pins[self.pinFlag].value)}")
 
-        if (self.pins[self.pinFlag].value == False): # grounded by cable
-            """False/grouded, then this event is a plug-in
+        if (self.pins[self.pinFlag].value == False): # grounded by tip
             """
-            # Determine which line
-            # self.whichLinePlugging = 0
-            # print("Stereo (Ring) pin {} aledgedly now: {}".format(self.pinFlag, self.pinsRing[self.pinFlag].value))
-
-            # Send plugin info to model.py as a dict 
+            False/grouded, then this event is a plug-in
+            """
+            # Send pin index to model.py as an int 
             # Model uses signals for LED, text and pinsIn to set here
             self.plugInToHandle.emit(self.pinFlag)
         else: # pin flag True, still, or again, high
+            # Resume here - how do we get here??
+
+            print(f"  ** got to pin disconnected in continueCheckPin")
+
+
             # was this a legit unplug?
             # if (self.pinsIn[self.pinFlag]): # was plugged in
 
@@ -225,11 +226,8 @@ class MainWindow(qtw.QMainWindow):
             if (self.model.getIsPinIn(self.pinFlag)):
                 # print(f"Pin {self.pinFlag} has been disconnected \n")
 
-                # Need to indirectly determine which line is being unpluged.
-                # Cant't test directly bcz stereo ring is no longer in place
                 # pinsIn : instead of True/False make it hold line index
-
-                print(f" ++ pin {self.pinFlag} was in.")
+                print(f" * pin {self.pinFlag} was in - handleUnPlug")
 
                 # On unplug we can't tell which line electonicaly 
                 # (diff in shaft is gone), so rely on pinsIn info
@@ -237,19 +235,17 @@ class MainWindow(qtw.QMainWindow):
                 # Model handleUnPlug will set pinsIn false for this on
 
             else:
-                print("got to pin true (changed to high), but not pin in")
+                print(" ** got to pin true (changed to high), but not pin in")
         
-        # print("finished check \n")
-
-        # self.mcp.clear_ints()
-        # self.just_checked = False
         # Delay setting just_check to false in case the plug is wiggled
         # qtc.QTimer.singleShot(300, self.delayedFinishCheck)
-        qtc.QTimer.singleShot(70, self.delayedFinishCheck)
+        # qtc.QTimer.singleShot(70, self.delayedFinishCheck)
+        qtc.QTimer.singleShot(150, self.delayedFinishCheck)
 
 
     def delayedFinishCheck(self):
-        print(" -- delayed finished check \n")
+        # This just delay resetting just_checked
+        print(" * delayed finished check \n")
         self.just_checked = False
 
         # Experimental
@@ -257,7 +253,7 @@ class MainWindow(qtw.QMainWindow):
 
 
     def checkWiggle(self):
-        print("got to checkWiggle")
+        print(" * got to checkWiggle")
         # self.wiggleTimer.stop() -- now singleShot
         # Check whether the pin still grounded
         # if no longer grounded, proceed with event detection

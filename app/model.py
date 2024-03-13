@@ -129,7 +129,7 @@ class Model(qtc.QObject):
     # def getPinInLine(self, pinIdx):
     #     return self.pinsInLine[pinIdx]
     
-    # Doesn't seem to be used
+    # Used by wiggle detect in control
     def getIsPinIn(self, pinIdx):
         return self.pinsIn[pinIdx]
 
@@ -137,7 +137,7 @@ class Model(qtc.QObject):
         self.incrementJustCalled = False
 
         if (self.currConvo < 9):
-            print(f'-- Setting currCallerIndex to {conversations[self.currConvo]["caller"]["index"]}'
+            print(f'Setting currCallerIndex to {conversations[self.currConvo]["caller"]["index"]}'
                   f' currConvo: {self.currConvo}')
             self.currCallerIndex =  conversations[self.currConvo]["caller"]["index"]
             # Set "target", person being called
@@ -149,7 +149,7 @@ class Model(qtc.QObject):
             self.blinkerStart.emit(conversations[self.currConvo]["caller"]["index"])
             self.displayText.emit("Incoming call..")
             
-            print(f'*New convo {self.currConvo} being initiated by: ' 
+            print(f'- New convo {self.currConvo} being initiated by: ' 
                     f'{persons[conversations[self.currConvo]["caller"]["index"]]["name"]}')
         else:
             # Play congratulations
@@ -210,7 +210,7 @@ class Model(qtc.QObject):
 
         self.displayText.emit(conversations[_currConvo]["convoText"])
 
-        print(f"-- PlayFullConvo {_currConvo}")
+        print(f" -- PlayFullConvo {_currConvo}")
         # Set callback for convo track finish
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.setCallCompleted) #  _currConvo, 
@@ -345,7 +345,7 @@ class Model(qtc.QObject):
         # *******/
         # Is this new use of this line -- caller has not been plugged in.
 
-        print(f' - *Start handlePlugIn, personIdx: {personIdx}'
+        print(f' - Start handlePlugIn, personIdx: {personIdx}'
               f' is caller plugged: {self.phoneLine["caller"]["isPlugged"]}')
         if (not self.phoneLine["caller"]["isPlugged"]): # New line - Caller not plugged
             # Did user plug into the actual caller?
@@ -578,11 +578,11 @@ class Model(qtc.QObject):
 
 
         else:   # Line was not fully engaged 
-            print(f' ++ not engaged, callee index: {self.phoneLine["callee"]["index"]}'
+            print(f' * not engaged, callee index: {self.phoneLine["callee"]["index"]}'
                   f'    line caller index: {self.phoneLine["caller"]["index"]}'
-                  f'    convo caller index: {conversations[self.currConvo]["caller"]["index"]}'
-                  f'    incoming personIdx index: {personIdx}'
                   )
+                    # f'    convo caller index: {conversations[self.currConvo]["caller"]["index"]}'
+                    # f'    incoming personIdx index: {personIdx}'
 
 
             # If wrong number, hmm need plug status for wrong number
@@ -615,7 +615,7 @@ class Model(qtc.QObject):
                     print(" just unplugging to free up a plug")
 
             else: # caller not plugged
-                print(" nothing going on, just unplugging ")
+                print(" * nothing going on, just unplugging ")
 
             # print(f' ++ not engaged, callee index: {self.phoneLines[lineIdx]["callee"]["index"]}')
             # if (self.phoneLines[lineIdx]["callee"]["index"] < 90): # callee jack was unplugged
@@ -647,7 +647,7 @@ class Model(qtc.QObject):
         # After all is said and done, this was unplugged, So, set pinIn False
         # self.setPinInLine(personIdx, -1)
         self.setPinIn(personIdx, False)
-        print(f"pin {personIdx} is now {self.pinsIn[personIdx]}")
+        print(f" - pin {personIdx} is now {self.pinsIn[personIdx]}")
 
 
     def setCallCompleted(self, event): #, _currConvo, lineIndex
