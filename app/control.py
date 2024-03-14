@@ -172,7 +172,7 @@ class MainWindow(qtw.QMainWindow):
                         self.startPressed.emit()
                     # self.pinsLed[0].value = True
         # As of 2024-03-23 bounctime had been 100, changed to 150
-        GPIO.add_event_detect(interrupt, GPIO.BOTH, callback=checkPin, bouncetime=150)
+        GPIO.add_event_detect(interrupt, GPIO.BOTH, callback=checkPin, bouncetime=50)
 
     def reset(self):
         self.label.setText("Press the Start button to begin!")

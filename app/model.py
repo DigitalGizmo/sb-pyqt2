@@ -173,6 +173,7 @@ class Model(qtc.QObject):
         self.displayText.emit(conversations[_currConvo]["helloText"])
 
     def endOperatorOnlyHello(self, event): # , lineIndex
+            print("  - About to attach supress callback to vlcEvent in endOperatorOnlyHello")
             self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
                 self.supressCallback) #  supress further callbacks
             # Don't know what this did in software proto
@@ -205,6 +206,8 @@ class Model(qtc.QObject):
         # self.outgoingTone.stop()
 
         # Stop tone events from calling more times
+        print("  - About to attach supress callback to toneEvent playFullConvo")
+
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback)         
 
@@ -252,6 +255,8 @@ class Model(qtc.QObject):
     def playFullWrongNum(self, event, pluggedPersonIdx): # , lineIndex
         # wrongNumFile = persons[pluggedPersonIdx]["wrongNumFile"]
         # disable event
+        print("  - About to attach supress callback to toneEvent playFullWrongNum")
+
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) # playFullConvo(currConvo, lineIndex)
 
@@ -270,6 +275,8 @@ class Model(qtc.QObject):
 
 
     def startPlayRequestCorrect(self, event): # , lineIndex
+        print("  - About to attach supress callback to vlcEvet in startPlayRequestCorrect")
+
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  _currConvo, 
 
@@ -286,6 +293,7 @@ class Model(qtc.QObject):
         # Transcript for correction
         self.displayText.emit(conversations[self.currConvo]["retryAfterWrongText"])
 
+        print("  - About to attach supress callback to vlcEvent in PlayRequestCorrect")
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) #  needed to replace previous event which would keep calling this itself 
 
