@@ -72,7 +72,19 @@
       "Charlie Freeman:  Freeman residence.  <br/> Tom:  I gotta talk to the Doctor. <br/> Charlie:  He went to see Mrs. White.  Who’s this?  …Hello?  Hello?"
   },  
   {
-    "callLabel": "index 6, call 6A Tom to Mrs White Audio 12-13",
+    "callLabel": "new: index 6 , call 7 Teen to Mina",
+    "caller": { "index": 10}, "callerLabel": " Cleo Bryant",
+    "callee":{"index": 0}, "calleeLabel": "  Mina",
+    "helloFile": "11a-Cleo_Calls_Operator",
+    "convoFile": "11b-Cleo_Calls_Mina",
+    "retryAfterWrongFile": "Cleo_wrongNumber_Caller",
+    "retryAfterWrongText": "No, that's not who I want, get me Mina Newell please.",
+    "helloText": "Hey, can you plese get me Mina?",
+    "convoText": 
+      "Mina:  Hello?  <br/> Teen:  Hey Mina, I failed the math test! Can I borrow your notes? <br/> Mina: Yeah, come on over. Oh! And I'll tell you about the fire. <br/> Teen Oooh, okay, be right over. <br/> Mina: See you."
+  },  
+  {
+    "callLabel": "now: idx 7, call 8  Tom to Mrs White Audio 12-13",
     "caller": { "index": 9}, "callerLabel": " Tom Libby 6",
     "callee":{"index": 2}, "calleeLabel": " Mrs. White  1",
     "helloFile": "12-Tom_Calls_Operator_3",
@@ -93,16 +105,5 @@
     "helloText": "Chief Burns:  Operator, it’s Chief Burns.  I know half the town is calling, <br/> so please reassure people; no people or animals were harmed, but the barn burned to the ground. <br/> No one will be at the station for a bit until we get cleaned up here, so any emergencies, <br/> ring me here at the Libby’s, please.  Thanks, Bye",
     "convoText": 
       "none" 
-  },  
-  {
-    "callLabel": "index 8, call 8 Dr. Freeman calls Village Store, Audio 16-16",
-    "caller": { "index": 9}, "callerLabel": " Dr. Freeman but from Libby's 6 farm",
-    "callee":{"index": 3}, "calleeLabel": "  Emma, Village store 0",
-    "helloFile": "15-Doctor_Calls_Operator",
-    "convoFile": "16-Doctor_Calls_Store",
-    "retryAfterWrongFile": "Doctor_WrongNumber_Caller",
-    "retryAfterWrongText": "No, that's not who I want. Please connect me to the village store.",
-    "helloText": "Dr. Freeman:  Village Store, please",
-    "convoText": "Emma:  Village Store. <br/> Dr. Freeman:  Emma, wondering if you could get some supplies over here to the Libby’s.  <br/> They’re in a bit of shock with the fire aftermath and all. <br/> Emma:  O my yes.  We can do that.  And don’t you worry about the charge. <br/> Dr. Freeman:  That’s good of you Emma.  And in case, you were looking for Olive, she’s right here. <br/> Emma:  That girl!  I told her to stay home…she’s… <br/> Dr. Freeman:  it’s OK.  She’s fine.  I think she just likes to be in the center of the action. <br/> Emma:  Well, thank you, Doctor.  I’ll bring the things myself.  Just hold her there. <br/> Dr. Freeman:  Thanks, bye. <br/> Emma: Bye."
-  }  
+  } 
 ]

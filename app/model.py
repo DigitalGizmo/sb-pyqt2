@@ -72,7 +72,7 @@ class Model(qtc.QObject):
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
-        self.currConvo = 2
+        self.currConvo = 4
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
