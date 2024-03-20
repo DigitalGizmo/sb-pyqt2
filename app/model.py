@@ -14,11 +14,12 @@ class Model(qtc.QObject):
     """Main logic patterned after software proto
     """
     # The following signals are connected in control.py
-    displayText = qtc.pyqtSignal(str)
-    ledEvent = qtc.pyqtSignal(int, bool)
+    displayTextSignal = qtc.pyqtSignal(str)
+    setLEDSignal = qtc.pyqtSignal(int, bool)
     # pinInEvent = qtc.pyqtSignal(int, bool)
     blinkerStart = qtc.pyqtSignal(int)
     blinkerStop = qtc.pyqtSignal()
+    
     # The following signal is local
     nextEvent = qtc.pyqtSignal(int)
     requestCorrectEvent = qtc.pyqtSignal()
@@ -102,7 +103,7 @@ class Model(qtc.QObject):
                 # "audioTrack": vlc.MediaPlayer("/home/piswitch/Apps/sb-audio/1-Charlie_Operator.mp3")
             }
 
-        self.displayText.emit("Keep your ears open for incoming calls!")
+        self.displayTextSignal.emit("Keep your ears open for incoming calls!")
 
     def stopTimers(self):
         if self.callInitTimer.isActive():
@@ -150,7 +151,7 @@ class Model(qtc.QObject):
             # buzzTrack.volume = .6   
             self.buzzPlayer.play()
             self.blinkerStart.emit(conversations[self.currConvo]["caller"]["index"])
-            self.displayText.emit("Incoming call..")
+            self.displayTextSignal.emit("Incoming call..")
             
             print(f'- New convo {self.currConvo} being initiated by: ' 
                     f'{persons[conversations[self.currConvo]["caller"]["index"]]["name"]}')
@@ -173,7 +174,7 @@ class Model(qtc.QObject):
         # Proceed with playing -- event may or may not be attached            
         self.vlcPlayer.play()
         # Send msg to screen
-        self.displayText.emit(conversations[_currConvo]["helloText"])
+        self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
 
     def endOperatorOnlyHello(self, event): # , lineIndex
             print("  - About to attach supress callback to vlcEvent in endOperatorOnlyHello")
@@ -222,12 +223,12 @@ class Model(qtc.QObject):
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
-        # self.displayText.emit(conversations[_currConvo]["convoText"])
+        # self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
 
         # self.display_captions('captions/2-Charlie_Calls_Olive.srt')
         self.displayCaptionSignal.emit('2-Charlie_Calls_Olive')
 
-        # self.displayText.emit(conversations[_currConvo]["helloText"])
+        # self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
 
     def playFullConvoNoEvent(self, _currConvo): # , lineIndex
         # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
@@ -237,7 +238,7 @@ class Model(qtc.QObject):
         # self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
         #     self.supressCallback)         
 
-        self.displayText.emit(conversations[_currConvo]["convoText"])
+        self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
 
         print(f"-- PlayFullConvoNoEvent {_currConvo}")
         # Set callback for convo track finish
@@ -266,7 +267,7 @@ class Model(qtc.QObject):
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback) # playFullConvo(currConvo, lineIndex)
 
-        self.displayText.emit(persons[pluggedPersonIdx]["wrongNumText"])
+        self.displayTextSignal.emit(persons[pluggedPersonIdx]["wrongNumText"])
 
         print(f"-- PlayWrongNun person {pluggedPersonIdx}")
         # Set callback for wrongNUm track finish
@@ -297,7 +298,7 @@ class Model(qtc.QObject):
     def playRequestCorrect(self):
         print(f"got to playRequestCorrect, currConvo: {self.currConvo}")
         # Transcript for correction
-        self.displayText.emit(conversations[self.currConvo]["retryAfterWrongText"])
+        self.displayTextSignal.emit(conversations[self.currConvo]["retryAfterWrongText"])
 
         print("  - About to attach supress callback to vlcEvent in PlayRequestCorrect")
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
@@ -315,7 +316,7 @@ class Model(qtc.QObject):
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback)         
 
-        self.displayText.emit("Congratulations -- you finished your first shift as a switchboard operator!")
+        self.displayTextSignal.emit("Congratulations -- you finished your first shift as a switchboard operator!")
         # print(f"-- PlayFullConvo {_currConvo}, lineIndex: {lineIndex}")
 
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
@@ -365,7 +366,7 @@ class Model(qtc.QObject):
             # Did user plug into the actual caller?
             if personIdx == self.currCallerIndex: # Correct caller
                 # Turn this LED on
-                self.ledEvent.emit(personIdx, True)
+                self.setLEDSignal.emit(personIdx, True)
                 # Set this person's jack to plugged
                 # self.setPinInLine(personIdx, lineIdx)
                 self.setPinIn(personIdx, True)
@@ -445,7 +446,7 @@ class Model(qtc.QObject):
                 # self.prevLineInUse = self.whichLineInUse
             else:
                 print("wrong jack -- or wrong line")
-                self.displayText.emit("That's not the jack for the person who is asking you to connect!")
+                self.displayTextSignal.emit("That's not the jack for the person who is asking you to connect!")
 
         else: # caller is plugged
 			#********
@@ -455,7 +456,7 @@ class Model(qtc.QObject):
             # print(f"Which line in use: {lineIdx}")
             # if (lineIdx == self.whichLineInUse): # This is the line in use
             # Whether or not this is correct callee -- turn LED on.
-            self.ledEvent.emit(personIdx, True)
+            self.setLEDSignal.emit(personIdx, True)
             # Set pinsIn True
             # self.setPinInLine(personIdx, lineIdx)
             self.setPinIn(personIdx, True)
@@ -513,7 +514,7 @@ class Model(qtc.QObject):
             # Stop the audio
             self.vlcPlayer.stop()
             # Clear Transcript 
-            self.displayText.emit("Call disconnected..")
+            self.displayTextSignal.emit("Call disconnected..")
 
             # # Disabling multi-call
             # # First, handle case here this a sileced call that's being unplugged		
@@ -540,7 +541,7 @@ class Model(qtc.QObject):
             if (self.phoneLine["callee"]["index"] == personIdx):  # callee just unplugged
                 print('   Unplugging callee')
                 # Turn off callee LED
-                self.ledEvent.emit(self.phoneLine["callee"]["index"], False)
+                self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
                 # Mark callee unplugged
                 self.phoneLine["callee"]["isPlugged"] = False
@@ -559,7 +560,7 @@ class Model(qtc.QObject):
                 self.phoneLine["unPlugStatus"] = self.CALLER_UNPLUGGED
                 # ? prevLineInUse = -1;
                 # Turn off caller LED
-                self.ledEvent.emit(self.phoneLine["caller"]["index"], False)
+                self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
                 self.setTimeToNext(1000);							
 
             else: 
@@ -622,7 +623,7 @@ class Model(qtc.QObject):
                     self.vlcPlayer.stop() # vlcPlayers[lineIdx]
                     # Cover for before personidx defined
                     if (personIdx < 99):
-                        self.ledEvent.emit(personIdx, False)
+                        self.setLEDSignal.emit(personIdx, False)
                     # clear the unplug status
                     self.phoneLine["unPlugStatus"] = self.NO_UNPLUG_STATUS
                 else: # Not unplugging wrong - do nothing
@@ -760,12 +761,12 @@ class Model(qtc.QObject):
         # Turn off the LEDs
         # persons[phoneLines[lineIdx].caller.index].ledState = LED_OFF;
         # self.ledEvent.emit(personIdx, False)
-        self.ledEvent.emit(self.phoneLine["caller"]["index"], False)
+        self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
         # Can't turn off callee led if callee index hasn't been defined
         # print(f'About to try to turn off .callee.index: {self.phoneLines[lineIdx]["callee"]["index"]}')
         if (self.phoneLine["callee"]["index"] < 90):
             # console.log('got into callee index not null');
-            self.ledEvent.emit(self.phoneLine["callee"]["index"], False)
+            self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
     def handleStart(self):
         """Just for startup

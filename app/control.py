@@ -72,8 +72,8 @@ class MainWindow(qtw.QMainWindow):
         self.unPlugToHandle.connect(self.model.handleUnPlug)
 
         # Eventst from model.py
-        self.model.displayText.connect(self.setScreenLabel)
-        self.model.ledEvent.connect(self.setLED)
+        self.model.displayTextSignal.connect(self.displayText)
+        self.model.setLEDSignal.connect(self.setLED)
         # self.model.pinInEvent.connect(self.setPinsIn)
         self.model.blinkerStart.connect(self.startBlinker)
         self.model.blinkerStop.connect(self.stopBlinker)
@@ -265,7 +265,7 @@ class MainWindow(qtw.QMainWindow):
         # else: still grounded -- do nothing
             # pin has been removed during pause
 
-    def setScreenLabel(self, msg):
+    def displayText(self, msg):
         self.label.setText(msg)        
 
     def setLED(self, flagIdx, onOrOff):
@@ -327,7 +327,7 @@ class MainWindow(qtw.QMainWindow):
                     # print(f'time: {time}, text: {text}')
                     # self.caption_label.setText(text)
 
-                    self.setScreenLabel(text)
+                    self.displayText(text)
 
                     # Proccess time
                     times = time.split(' --> ')
