@@ -1,0 +1,35 @@
+1
+00:00:00,000 --> 00:00:01,100
+Olive:  Hello?
+
+2
+00:00:01,101 --> 00:00:03,650
+Charlie:  Hi Olive, it’s Charlie.  Bowling's off.
+
+3
+00:00:03,651 --> 00:00:05,400
+Olive:  What's wrong?
+
+4
+00:00:05,400 --> 00:00:08,250
+Charlie:  My dad has a sick patient and he's taken the car.
+
+5
+00:00:08,250 --> 00:00:11,435
+Olive: I suppose that's what it’s like when your dad's a doctor.
+
+6
+00:00:11,435 --> 00:00:14,135
+Charlie: Yeh.  He said I can't hang out if he's not here.
+
+7
+00:00:14,135 --> 00:00:17,560
+Olive: That;s OK. Maybe my mom can take us tomorrow.
+
+8
+00:00:17,560 --> 00:00:20,040
+Charlie: That'd be cool. But I gotta go. Bye.
+
+9
+00:00:20,040 --> 00:00:21,150
+Olive: Bye, bye 

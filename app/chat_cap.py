@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         self.player.play()
         
         # Start displaying captions
-        self.display_captions('captions/test.srt')
+        self.display_captions('captions/2-Charlie_Calls_Olive.srt')
 
     def display_captions(self, caption_file):
         with open(caption_file, 'r') as f:
@@ -51,19 +51,19 @@ class MainWindow(QMainWindow):
             return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
 
         def display_next_caption():
-            print('got to display_next_caption')
+            # print('got to display_next_caption')
             nonlocal self
             if self.caption_index < len(captions):
                 caption = captions[self.caption_index]
-                print(f'full entry: {caption}')
+                # print(f'full entry: {caption}')
                 if '-->' in caption:
-                    time, text = caption.split('\n', 1)
-                    print(f'time: {time}, text: {text}')
+                    number, time, text = caption.split('\n', 2)
+                    # print(f'time: {time}, text: {text}')
                     self.caption_label.setText(text)
 
                     # Proccess time
                     times = time.split(' --> ')
-                    print(f'times[0]: {times[0]}')
+                    # print(f'times[0]: {times[0]}')
                     start_time_ms = time_str_to_ms(times[0])
                     end_time_ms = time_str_to_ms(times[1])
                     duration_ms = end_time_ms - start_time_ms
