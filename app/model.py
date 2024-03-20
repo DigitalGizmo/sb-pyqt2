@@ -24,6 +24,9 @@ class Model(qtc.QObject):
     requestCorrectEvent = qtc.pyqtSignal()
     checkPinsInEvent = qtc.pyqtSignal() # Doesn't seem to be used
 
+    displayCaptionSignal = qtc.pyqtSignal(str)
+
+
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
     buzzPlayer.set_media(buzzInstace.media_new_path("/home/piswitch/Apps/sb-audio/buzzer.mp3"))
@@ -72,7 +75,7 @@ class Model(qtc.QObject):
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
-        self.currConvo = 4
+        self.currConvo = 0
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -211,8 +214,6 @@ class Model(qtc.QObject):
         self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.supressCallback)         
 
-        self.displayText.emit(conversations[_currConvo]["convoText"])
-
         print(f" -- PlayFullConvo {_currConvo}")
         # Set callback for convo track finish
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
@@ -221,7 +222,12 @@ class Model(qtc.QObject):
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
+        # self.displayText.emit(conversations[_currConvo]["convoText"])
 
+        # self.display_captions('captions/2-Charlie_Calls_Olive.srt')
+        self.displayCaptionSignal.emit('2-Charlie_Calls_Olive')
+
+        # self.displayText.emit(conversations[_currConvo]["helloText"])
 
     def playFullConvoNoEvent(self, _currConvo): # , lineIndex
         # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
@@ -760,7 +766,7 @@ class Model(qtc.QObject):
         if (self.phoneLine["callee"]["index"] < 90):
             # console.log('got into callee index not null');
             self.ledEvent.emit(self.phoneLine["callee"]["index"], False)
-		
+
     def handleStart(self):
         """Just for startup
         """

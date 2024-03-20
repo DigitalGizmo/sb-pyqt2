@@ -78,6 +78,7 @@ class MainWindow(qtw.QMainWindow):
         self.model.blinkerStart.connect(self.startBlinker)
         self.model.blinkerStop.connect(self.stopBlinker)
         # self.model.checkPinsInEvent.connect(self.checkPinsIn)
+        self.model.displayCaptionSignal.connect(self.displayCaptions)
 
         # Initialize the I2C bus:
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -302,6 +303,43 @@ class MainWindow(qtw.QMainWindow):
         else:
             self.reset()
             self.model.handleStart()
+
+
+    def displayCaptions(self, file_name):
+        with open('captions/' + file_name + '.srt', 'r') as f:
+            captions = f.read().split('\n\n')
+
+        self.caption_index = 0
+
+        def time_str_to_ms(time_str):
+            hours, minutes, seconds_ms = time_str.split(':')
+            seconds, milliseconds = seconds_ms.split(',')
+            return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
+
+        def display_next_caption():
+            # print('got to display_next_caption')
+            nonlocal self
+            if self.caption_index < len(captions):
+                caption = captions[self.caption_index]
+                # print(f'full entry: {caption}')
+                if '-->' in caption:
+                    number, time, text = caption.split('\n', 2)
+                    # print(f'time: {time}, text: {text}')
+                    # self.caption_label.setText(text)
+
+                    self.setScreenLabel(text)
+
+                    # Proccess time
+                    times = time.split(' --> ')
+                    # print(f'times[0]: {times[0]}')
+                    start_time_ms = time_str_to_ms(times[0])
+                    end_time_ms = time_str_to_ms(times[1])
+                    duration_ms = end_time_ms - start_time_ms
+
+                    qtc.QTimer.singleShot(duration_ms, display_next_caption)
+                self.caption_index += 1
+
+        display_next_caption()
 
 app = qtw.QApplication([])
 
