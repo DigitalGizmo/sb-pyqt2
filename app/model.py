@@ -523,13 +523,8 @@ class Model(qtc.QObject):
             # Clear Transcript 
             self.displayTextSignal.emit("Call disconnected..")
 
-
-
-            # # Handle the three cases of unplugging engaged call
-            # # 1) call will be interrupted 2) call is silenced, 3) regular calls 		
-
-
-            if (self.phoneLine["callee"]["index"] == personIdx):  # callee just unplugged
+            # callee just unplugged
+            if (self.phoneLine["callee"]["index"] == personIdx):  
                 print('   Unplugging callee')
                 # Turn off callee LED
                 self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
@@ -539,17 +534,14 @@ class Model(qtc.QObject):
                 self.phoneLine["isEngaged"] = False
                 self.vlcPlayer.stop()	
                 # Leave caller plugged in, replay hello
-                # reconnectTimer = setTimeout(playHello(currConvo, lineIdx), 3000);
-                # can't send params through timer, play static instead, with call back
-                self.setTimeReCall(self.currConvo) # , lineIdx
-                # playHello(currConvo, lineIdx);
-            elif (self.phoneLine["caller"]["index"] == personIdx): # caller unplugged
+                self.setTimeReCall(self.currConvo) 
+            # caller unplugged
+            elif (self.phoneLine["caller"]["index"] == personIdx): 
                 print(" Caller just unplugged")
                 self.phoneLine["caller"]["isPlugged"] = False
                 self.phoneLine["isEngaged"] = False
                 # Also
                 self.phoneLine["unPlugStatus"] = self.CALLER_UNPLUGGED
-                # ? prevLineInUse = -1;
                 # Turn off caller LED
                 self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
                 # In this case timer can be called directly (without signal)
@@ -584,17 +576,12 @@ class Model(qtc.QObject):
         #     # at re-plugging the caller??
         #     print('   Unplugg on the wrong jack during caller unplug')
 
-
+        # Phone line is not engaged -- isEngaged == False
         else:   # Line was not fully engaged 
-            print(f' * not engaged, callee index: {self.phoneLine["callee"]["index"]}'
-                  f'    line caller index: {self.phoneLine["caller"]["index"]}'
+            print(f' - not engaged, callee index: {self.phoneLine["callee"]["index"]}'
+                  f'    caller index: {self.phoneLine["caller"]["index"]}'
                   )
-                    # f'    convo caller index: {conversations[self.currConvo]["caller"]["index"]}'
-                    # f'    incoming personIdx index: {personIdx}'
-
-
             # If wrong number, hmm need plug status for wrong number
-
 
             # # First, maybe this is an unplug of "old" call to free up the plugg
             # # caller would be plugged
