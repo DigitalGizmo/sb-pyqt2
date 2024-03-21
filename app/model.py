@@ -20,7 +20,9 @@ class Model(qtc.QObject):
     blinkerStart = qtc.pyqtSignal(int)
     blinkerStop = qtc.pyqtSignal()
     displayCaptionSignal = qtc.pyqtSignal(str)
-    checkPinsInEvent = qtc.pyqtSignal() # Doesn't seem to be used
+    stopCaptionSignal = qtc.pyqtSignal()
+    # Doesn't seem to be used
+    checkPinsInEvent = qtc.pyqtSignal() 
     
     # The following signals are local
     # Need to avoid thread conflicts
@@ -230,6 +232,8 @@ class Model(qtc.QObject):
 
         # self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
 
+    # Called after caller unplugs. Redundant - workaround doe to not needing to 
+    # stop  calling event. -- must be a better way!
     def playFullConvoNoEvent(self, _currConvo): # , lineIndex
         # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
         # self.outgoingTone.stop()
@@ -248,7 +252,8 @@ class Model(qtc.QObject):
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
-
+        # needs to be dynamic
+        self.displayCaptionSignal.emit('2-Charlie_Calls_Olive')
 
 
     def playWrongNum(self, pluggedPersonIdx): # , lineIndex
@@ -513,30 +518,16 @@ class Model(qtc.QObject):
             print(f'  - Unplugging a call in progress person id: {persons[personIdx]["name"]} ' )
             # Stop the audio
             self.vlcPlayer.stop()
+            # Stop subtitles
+            self.stopCaptionSignal.emit()
             # Clear Transcript 
             self.displayTextSignal.emit("Call disconnected..")
 
-            # # Disabling multi-call
-            # # First, handle case here this a sileced call that's being unplugged		
-            # if (self.phoneLines[lineIdx]["unPlugStatus"] == self.DURING_INTERRUPT_SILENCE):
-            #     print('    Unplugging silenced call');
-            #     self.phoneLines[lineIdx]["unPlugStatus"] = self.NO_UNPLUG_STATUS
-            #     self.stopSilentCall(lineIdx)
-            # else: # This is a regular unplug
+
 
             # # Handle the three cases of unplugging engaged call
             # # 1) call will be interrupted 2) call is silenced, 3) regular calls 		
-            # if (self.phoneLines[lineIdx]["unPlugStatus"] == self.AWAITING_INTERRUPT):
-            #     # Disconnecting a call that had already started a timer
-            #     # for an interruption
-            #     print('    Unplug while awaiting interrupt')
-            #     self.currConvo -= 1 # Undo the increment that was set
-            #     self.callInitTimer.stop() # bcz we're starting over
-            #     # setCallUnplugged(lineIdx); 
-            #     # phoneLines[lineIdx].unPlugStatus = REPLUG_IN_PROGRESS;
-            # # Try setting this so that if the other silenced call ends
-            # # it knows this has been unplugged
-            # self.phoneLines[lineIdx]["unPlugStatus"] = self.REPLUG_IN_PROGRESS
+
 
             if (self.phoneLine["callee"]["index"] == personIdx):  # callee just unplugged
                 print('   Unplugging callee')

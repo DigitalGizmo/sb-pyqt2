@@ -16,6 +16,7 @@ from model import Model
 class MainWindow(qtw.QMainWindow): 
     # Most of this module is analogous to svelte Panel
 
+    # These signals are internal to control.py
     startPressed = qtc.pyqtSignal()
     plugEventDetected = qtc.pyqtSignal()
     plugInToHandle = qtc.pyqtSignal(int)
@@ -79,6 +80,8 @@ class MainWindow(qtw.QMainWindow):
         self.model.blinkerStop.connect(self.stopBlinker)
         # self.model.checkPinsInEvent.connect(self.checkPinsIn)
         self.model.displayCaptionSignal.connect(self.displayCaptions)
+        self.model.stopCaptionSignal.connect(self.stopCaptions)
+        self.areCaptionsContinuing = True
 
         # Initialize the I2C bus:
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -304,11 +307,14 @@ class MainWindow(qtw.QMainWindow):
             self.reset()
             self.model.handleStart()
 
+    def stopCaptions(self):
+        self.areCaptionsContinuing = False
+
 
     def displayCaptions(self, file_name):
         with open('captions/' + file_name + '.srt', 'r') as f:
             captions = f.read().split('\n\n')
-
+        self.areCaptionsContinuing = True
         self.caption_index = 0
 
         def time_str_to_ms(time_str):
@@ -327,7 +333,9 @@ class MainWindow(qtw.QMainWindow):
                     # print(f'time: {time}, text: {text}')
                     # self.caption_label.setText(text)
 
-                    self.displayText(text)
+                    # Stop if unplugged
+                    if (self.areCaptionsContinuing):
+                        self.displayText(text)
 
                     # Proccess time
                     times = time.split(' --> ')
@@ -336,7 +344,8 @@ class MainWindow(qtw.QMainWindow):
                     end_time_ms = time_str_to_ms(times[1])
                     duration_ms = end_time_ms - start_time_ms
 
-                    qtc.QTimer.singleShot(duration_ms, display_next_caption)
+                    if (self.areCaptionsContinuing):
+                        qtc.QTimer.singleShot(duration_ms, display_next_caption)
                 self.caption_index += 1
 
         display_next_caption()
