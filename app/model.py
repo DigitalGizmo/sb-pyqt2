@@ -13,20 +13,19 @@ persons = json.load(personsJsonFile)
 class Model(qtc.QObject):
     """Main logic patterned after software proto
     """
-    # The following signals are connected in control.py
+    # The following signals are connected in/ called from control.py
     displayTextSignal = qtc.pyqtSignal(str)
     setLEDSignal = qtc.pyqtSignal(int, bool)
     # pinInEvent = qtc.pyqtSignal(int, bool)
     blinkerStart = qtc.pyqtSignal(int)
     blinkerStop = qtc.pyqtSignal()
-    
-    # The following signal is local
-    nextEvent = qtc.pyqtSignal(int)
-    requestCorrectEvent = qtc.pyqtSignal()
-    checkPinsInEvent = qtc.pyqtSignal() # Doesn't seem to be used
-
     displayCaptionSignal = qtc.pyqtSignal(str)
-
+    checkPinsInEvent = qtc.pyqtSignal() # Doesn't seem to be used
+    
+    # The following signals are local
+    # Need to avoid thread conflicts
+    setTimeToNextSignal = qtc.pyqtSignal(int)
+    playRequestCorrectSignal = qtc.pyqtSignal()
 
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
@@ -62,8 +61,8 @@ class Model(qtc.QObject):
         self.silencedCalTimer.setSingleShot(True)
         self.silencedCalTimer.timeout.connect(self.silencedCallEnded)
 
-        self.requestCorrectEvent.connect(self.playRequestCorrect)
-        self.nextEvent.connect(self.setTimeToNext)
+        self.playRequestCorrectSignal.connect(self.playRequestCorrect)
+        self.setTimeToNextSignal.connect(self.setTimeToNext)
 
         self.reset()
 
@@ -185,7 +184,8 @@ class Model(qtc.QObject):
             self.clearTheLine() # lineIndex
             print(f" ** Hello-only ended.  Bump currConvo from {self.currConvo}")
             self.currConvo += 1
-            self.nextEvent.emit(1000)
+            # Timers can't be started from another thread
+            self.setTimeToNextSignal.emit(1000)
 
     def playConvo(self, currConvo): # , lineIndex
         """
@@ -288,7 +288,7 @@ class Model(qtc.QObject):
             self.supressCallback) #  _currConvo, 
 
         # self.requestCorrectLine = lineIndex
-        self.requestCorrectEvent.emit()
+        self.playRequestCorrectSignal.emit()
         # self.requestCorrectTimer.start(1000)
 
     # def startRequestCorrectTimer(self):
@@ -344,7 +344,7 @@ class Model(qtc.QObject):
         self.playHello(self.currConvo) #, self.reCallLine
         # calling playHello direclty with callback would send event param
         # self.vlcPlayers[lineIdx].stop()
-        # self.nextEvent.emit(1000)
+        # self.setTimeToNextSignal.emit(1000)
         # self.playHello(_currConvo, lineIdx)
 
     # def handlePlugIn(self, pluggedIdxInfo):
@@ -561,6 +561,8 @@ class Model(qtc.QObject):
                 # ? prevLineInUse = -1;
                 # Turn off caller LED
                 self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
+                # In this case timer can be called directly (without signal)
+                # Perhaps because no call is engaged at this point
                 self.setTimeToNext(1000);							
 
             else: 
@@ -715,7 +717,7 @@ class Model(qtc.QObject):
             # Uptick currConvo here, when call is comlete
             self.currConvo += 1
             # Use signal rather than calling callInitTimer bcz threads
-            self.nextEvent.emit(1000)
+            self.setTimeToNextSignal.emit(1000)
 
         # When call 0 ends, do nothing. But how do I kmow this is is 0 ending since
         # currConvo has already been incremented to 1. When 1 ends I do want to increment.    
@@ -732,7 +734,7 @@ class Model(qtc.QObject):
         #         self.currConvo += 1
         #         # Use signal rather than calling callInitTimer bcz threads
         #         # Uptick currConvo here, when call is comlete
-        #         self.nextEvent.emit(1000)
+        #         self.setTimeToNextSignal.emit(1000)
 
 
     def stopCall(self): # , lineIndex
