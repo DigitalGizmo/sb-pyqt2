@@ -178,9 +178,9 @@ class Model(qtc.QObject):
         self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
 
     def endOperatorOnlyHello(self, event): # , lineIndex
-            print("  - About to attach supress callback to vlcEvent in endOperatorOnlyHello")
-            self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-                self.supressCallback) #  supress further callbacks
+            print("  - About to detach vlcEvent in endOperatorOnlyHello")
+            self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached) 
+            #  supress further callbacks self.supressCallback
             # Don't know what this did in software proto
             # setHelloOnlyCompleted(lineIndex)
             self.clearTheLine() # lineIndex
@@ -212,11 +212,9 @@ class Model(qtc.QObject):
         # self.outgoingTone.stop()
 
         # Stop tone events from calling more times
-        print("  - About to attach supress callback to toneEvent playFullConvo")
-
-        # self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
-        #     self.supressCallback)         
-        self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached) # self.vlcEventDetatched     
+        print("  - About to detach toneEvent playFullConvo")
+        
+        self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached) # self.vlcEventdetached     
 
         print(f" -- PlayFullConvo {_currConvo}")
         # Set callback for convo track finish
@@ -239,10 +237,7 @@ class Model(qtc.QObject):
         # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
         # self.outgoingTone.stop()
 
-        # # Stop tone events from calling more times
-        # self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
-        #     self.supressCallback)         
-
+        #  no tone event to stop
         self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
 
         print(f"-- PlayFullConvoNoEvent {_currConvo}")
@@ -268,10 +263,9 @@ class Model(qtc.QObject):
     def playFullWrongNum(self, event, pluggedPersonIdx): # , lineIndex
         # wrongNumFile = persons[pluggedPersonIdx]["wrongNumFile"]
         # disable event
-        print("  - About to attach supress callback to toneEvent playFullWrongNum")
+        print("  - About to detacth toneEventin playFullWrongNum")
 
-        self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.supressCallback) # playFullConvo(currConvo, lineIndex)
+        self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached) 
 
         self.displayTextSignal.emit(persons[pluggedPersonIdx]["wrongNumText"])
 
@@ -288,10 +282,9 @@ class Model(qtc.QObject):
 
 
     def startPlayRequestCorrect(self, event): # , lineIndex
-        print("  - About to attach supress callback to vlcEvet in startPlayRequestCorrect")
+        print("  - About to detach vlcEvent in startPlayRequestCorrect")
 
-        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.supressCallback) #  _currConvo, 
+        self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
 
         # self.requestCorrectLine = lineIndex
         self.playRequestCorrectSignal.emit()
@@ -306,9 +299,9 @@ class Model(qtc.QObject):
         # Transcript for correction
         self.displayTextSignal.emit(conversations[self.currConvo]["retryAfterWrongText"])
 
-        print("  - About to attach supress callback to vlcEvent in PlayRequestCorrect")
-        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.supressCallback) #  needed to replace previous event which would keep calling this itself 
+        print("  - About to detach vlcEvent in PlayRequestCorrect")
+        self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached) 
+
 
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[self.currConvo]["retryAfterWrongFile"] + ".mp3")
@@ -319,8 +312,7 @@ class Model(qtc.QObject):
         # Will be handled by "unPlug"
 
     def playFinished(self):
-        self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.supressCallback)         
+        self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached)         
 
         self.displayTextSignal.emit("Congratulations -- you finished your first shift as a switchboard operator!")
         # print(f"-- PlayFullConvo {_currConvo}, lineIndex: {lineIndex}")
@@ -330,11 +322,11 @@ class Model(qtc.QObject):
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
 
-    def supressCallback(self, event):
-        print("     supress video end callback")
+    # def supressCallback(self, event):
+    #     print("     supress video end callback")
 
-    def vlcEventDetatched(self, event):
-        print(f"     event detached: {event}")
+    # def vlcEventdetached(self, event):
+    #     print(f"     event detached: {event}")
 
     def setTimeToNext(self, timeToWait):
         self.callInitTimer.start(timeToWait)        
@@ -651,8 +643,7 @@ class Model(qtc.QObject):
 
     def setCallCompleted(self, event): #, _currConvo, lineIndex
         # Disable callback
-        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.supressCallback) #  _currConvo, 
+        self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
                 
         # otherLineIdx = 1 if (lineIndex == 0) else 0
         # print(f" ** setCallCompleted. Convo: {self.currConvo},  line:  {lineIndex} stopping. Other line has" 
@@ -662,17 +653,7 @@ class Model(qtc.QObject):
         self.stopCall()
 
         # # Disable multi-call
-        # # Much intervening logic to handle call interruption
-        # # Don't start next call on finish if other line has callee or caller plugged
-        # if (self.phoneLines[otherLineIdx]["caller"]["isPlugged"] or
-        #     self.phoneLines[otherLineIdx]["callee"]["isPlugged"]):
-        #     print('   Completing call with caller or callee plugged on other line')
-        #     # This is a behind the scenes conversation that was interrupted
-        #     # and is ending.
-        #     # Dont increment currConvo
-        #     # Call has been stopped, so:
-        #     # phoneLines[lineIndex].unPlugStatus = REPLUG_IN_PROGRESS;
-        #     self.phoneLines[lineIndex]["unPlugStatus"] = self.NO_UNPLUG_STATUS
+
         # else: 
 
         # Regular ending
