@@ -1,0 +1,12 @@
+1
+00:00:00,000 --> 00:09:01,100
+Olive: Hello? <br/> 
+Emma: Honey, are you OK? <br/>  
+Olive: There's a fire at the Libbey's barn! <br/> 
+Emma: I heard the fire truck. You stay inside.<br/> 
+Olive: I can see the flames and Tom was running <br/>  
+Emma: Olive, do you hear me? You stay there. I can't leave the store yet, but I'll be home soon and.  <br/> 
+Olive: Ooo the truck just got there.  <br/> 
+Emma: Honey, I don't like you home alone. Stay there. <br/> 
+Olive: Oh, mom. <br/> 
+Emma: Sit tight. Bye

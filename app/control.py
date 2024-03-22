@@ -310,7 +310,7 @@ class MainWindow(qtw.QMainWindow):
     def stopCaptions(self):
         self.areCaptionsContinuing = False
 
-
+    # Mostly from ChatGPT
     def displayCaptions(self, file_name):
         with open('captions/' + file_name + '.srt', 'r') as f:
             captions = f.read().split('\n\n')

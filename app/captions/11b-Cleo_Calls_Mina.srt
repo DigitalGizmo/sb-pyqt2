@@ -1,0 +1,7 @@
+1
+00:00:00,000 --> 00:09:01,100
+Mina: Hello? <br/> 
+Teen: Hey Mina, I failed the math test! Can I borrow your notes? <br/> 
+Mina: Yeah, come on over. Oh! And I'll tell you about the fire. <br/> 
+Teen Oooh, okay, be right over. <br/> 
+Mina: See you.

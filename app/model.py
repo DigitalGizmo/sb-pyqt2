@@ -214,8 +214,9 @@ class Model(qtc.QObject):
         # Stop tone events from calling more times
         print("  - About to attach supress callback to toneEvent playFullConvo")
 
-        self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.supressCallback)         
+        # self.toneEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
+        #     self.supressCallback)         
+        self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached) # self.vlcEventDetatched     
 
         print(f" -- PlayFullConvo {_currConvo}")
         # Set callback for convo track finish
@@ -228,7 +229,7 @@ class Model(qtc.QObject):
         # self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
 
         # self.display_captions('captions/2-Charlie_Calls_Olive.srt')
-        self.displayCaptionSignal.emit('2-Charlie_Calls_Olive')
+        self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
 
         # self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
 
@@ -253,7 +254,7 @@ class Model(qtc.QObject):
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
         # needs to be dynamic
-        self.displayCaptionSignal.emit('2-Charlie_Calls_Olive')
+        self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
 
 
     def playWrongNum(self, pluggedPersonIdx): # , lineIndex
@@ -331,6 +332,9 @@ class Model(qtc.QObject):
 
     def supressCallback(self, event):
         print("     supress video end callback")
+
+    def vlcEventDetatched(self, event):
+        print(f"     event detached: {event}")
 
     def setTimeToNext(self, timeToWait):
         self.callInitTimer.start(timeToWait)        
