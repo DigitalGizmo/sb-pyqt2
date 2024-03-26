@@ -514,10 +514,9 @@ class Model(qtc.QObject):
             # Get stop time
             stopTime = self.vlcPlayer.get_time()
             print(f'  -- stop time: {stopTime}')
+
             # Stop the audio
             self.vlcPlayer.stop()
-
-
             # Stop subtitles
             self.stopCaptionSignal.emit()
             # Clear Transcript 
@@ -529,6 +528,7 @@ class Model(qtc.QObject):
                 # Turn off callee LED
                 self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
+                # Early in call, retry
                 if (stopTime < 11000):
                     # Restart this answer to cal
                     # Mark callee unplugged
@@ -540,6 +540,7 @@ class Model(qtc.QObject):
                 else:
                     # end convo and move on
                     print(f'  - stopped with time: {stopTime}')
+                    self.setCallCompleted(self)
 
             # caller unplugged
             elif (self.phoneLine["caller"]["index"] == personIdx): 
@@ -651,38 +652,18 @@ class Model(qtc.QObject):
         print(f" - pin {personIdx} is now {self.pinsIn[personIdx]}")
 
 
-    def setCallCompleted(self, event): #, _currConvo, lineIndex
-        # Disable callback
-        self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
+    def setCallCompleted(self, event=None): #, _currConvo, lineIndex
+        # Disable callback if present
+        if (event != None):
+            self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
                 
-        # otherLineIdx = 1 if (lineIndex == 0) else 0
-        # print(f" ** setCallCompleted. Convo: {self.currConvo},  line:  {lineIndex} stopping. Other line has" 
-        #       f"unplug stat of {self.phoneLines[otherLineIdx]['unPlugStatus']}")
-        print(f" ** setCallCompleted. Convo: {self.currConvo}")
+        print(f" -- setCallCompleted. Convo: {self.currConvo}")
         # Stop call
         self.stopCall()
 
-        # # Disable multi-call
-
-        # else: 
-
-        # Regular ending
         # # print("other line has neither caller nor callee plugged")
         # if (self.phoneLines[otherLineIdx]["unPlugStatus"] == self.REPLUG_IN_PROGRESS):
-        #     # Handle case where this is a silenced call ending automatically
-        #     # while the interrupting call has been unplugged
-        #     # Here "other line" is the interrupting call that was unplugged
-        #     print('   we think this is auto end of silenced call during 2nd call unplug');
-        #     # Reset the unplug status
-        #     self.phoneLines[otherLineIdx]["unPlugStatus"] = self.NO_UNPLUG_STATUS
-        # # Trying to handle interrupting call that isn't answered as an interrupt
-        # # This solution doen't work
-        # # elif (self.currConvo == 1 or self.currConvo == 5): 
-        # #     # if this is interrupting call it shouldn't do the incriment
-        # # #     print("- Ignoring end of convo 1 or 5")
-        # else:
 
-    
         # Workaround to stop double calling
         if not self.incrementJustCalled:
             self.incrementJustCalled = True
@@ -697,18 +678,6 @@ class Model(qtc.QObject):
         
         # if (self.interruptingCallInHasBeenInitiated):
         #     print("-- Interrupting call has been initiated -- and is ending, do nothing.")    
-
-        # # Trying to handle interrupting call that isn't answered as an interrupt
-        # else:
-        #     # Workaround to stop double calling
-        #     if not self.incrementJustCalled:
-        #         self.incrementJustCalled = True
-        #         print(f'  increment from {self.currConvo} and start regular timer for next call.')
-        #         self.currConvo += 1
-        #         # Use signal rather than calling callInitTimer bcz threads
-        #         # Uptick currConvo here, when call is comlete
-        #         self.setTimeToNextSignal.emit(1000)
-
 
     def stopCall(self): # , lineIndex
         self.clearTheLine()
