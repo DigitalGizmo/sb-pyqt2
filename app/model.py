@@ -212,8 +212,7 @@ class Model(qtc.QObject):
         # self.outgoingTone.stop()
 
         # Stop tone events from calling more times
-        print("  - About to detach toneEvent playFullConvo")
-        
+        # print("  - About to detach toneEvent playFullConvo")
         self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached) # self.vlcEventdetached     
 
         print(f" -- PlayFullConvo {_currConvo}")
@@ -512,8 +511,13 @@ class Model(qtc.QObject):
         # If conversation is in progress -- engaged (implies correct callee)
         if (self.phoneLine["isEngaged"]):
             print(f'  - Unplugging a call in progress person id: {persons[personIdx]["name"]} ' )
+            # Get stop time
+            stopTime = self.vlcPlayer.get_time()
+            print(f'  -- stop time: {stopTime}')
             # Stop the audio
             self.vlcPlayer.stop()
+
+
             # Stop subtitles
             self.stopCaptionSignal.emit()
             # Clear Transcript 
@@ -525,12 +529,18 @@ class Model(qtc.QObject):
                 # Turn off callee LED
                 self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
-                # Mark callee unplugged
-                self.phoneLine["callee"]["isPlugged"] = False
-                self.phoneLine["isEngaged"] = False
-                self.vlcPlayer.stop()	
-                # Leave caller plugged in, replay hello
-                self.setTimeReCall(self.currConvo) 
+                if (stopTime < 11000):
+                    # Restart this answer to cal
+                    # Mark callee unplugged
+                    self.phoneLine["callee"]["isPlugged"] = False
+                    self.phoneLine["isEngaged"] = False
+                    # self.vlcPlayer.stop()	# redundant
+                    # Leave caller plugged in, replay hello
+                    self.setTimeReCall(self.currConvo)
+                else:
+                    # end convo and move on
+                    print(f'  - stopped with time: {stopTime}')
+
             # caller unplugged
             elif (self.phoneLine["caller"]["index"] == personIdx): 
                 print(" Caller just unplugged")

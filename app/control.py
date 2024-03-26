@@ -149,7 +149,7 @@ class MainWindow(qtw.QMainWindow):
                             # # to protect against inadvertent wiggle
                             if (self.model.getIsPinIn(pin_flag) == True):
 
-                                print(f" ** pin {pin_flag} is already in - so wiggle wait")
+                                # print(f" ** pin {pin_flag} is already in - so wiggle wait")
                                 # This will trigger a pause
                                 self.wiggleDetected.emit()
 
@@ -220,7 +220,7 @@ class MainWindow(qtw.QMainWindow):
         else: # pin flag True, still, or again, high
             # Resume here - how do we get here??
 
-            print(f"  ** got to pin disconnected in continueCheckPin")
+            # print(f"  ** got to pin disconnected in continueCheckPin")
 
 
             # was this a legit unplug?
