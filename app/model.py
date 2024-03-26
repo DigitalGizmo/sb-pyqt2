@@ -168,8 +168,8 @@ class Model(qtc.QObject):
         self.vlcPlayer.set_media(media)
         # For convo idxs 3 and 7 there is no full convo, so end after hello.
         # Attach event before playing
-        if (_currConvo == 3 or  _currConvo == 7):
-            print(f"** got to currConv = 3 or 7 **")
+        if (_currConvo == 3 or  _currConvo == 8):
+            print(f" -- got to currConv = 3 or 8 ")
             self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
                 self.endOperatorOnlyHello) #  _currConvo, ,lineIndex
         # Proceed with playing -- event may or may not be attached            
@@ -213,7 +213,8 @@ class Model(qtc.QObject):
 
         # Stop tone events from calling more times
         # print("  - About to detach toneEvent playFullConvo")
-        self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached) # self.vlcEventdetached     
+        if ( event != None):
+            self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
 
         print(f" -- PlayFullConvo {_currConvo}")
         # Set callback for convo track finish
@@ -230,25 +231,25 @@ class Model(qtc.QObject):
 
         # self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
 
-    # Called after caller unplugs. Redundant - workaround doe to not needing to 
-    # stop  calling event. -- must be a better way!
-    def playFullConvoNoEvent(self, _currConvo): # , lineIndex
-        # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
-        # self.outgoingTone.stop()
+        # # Called after caller unplugs. Redundant - workaround doe to not needing to 
+        # # stop  calling event. -- must be a better way!
+        # def playFullConvoNoEvent(self, _currConvo): # , lineIndex
+        #     # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
+        #     # self.outgoingTone.stop()
 
-        #  no tone event to stop
-        self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
+        #     #  no tone event to stop
+        #     self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
 
-        print(f"-- PlayFullConvoNoEvent {_currConvo}")
-        # Set callback for convo track finish
-        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-            self.setCallCompleted) #  _currConvo, 
-        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
-            conversations[_currConvo]["convoFile"] + ".mp3")
-        self.vlcPlayer.set_media(media)
-        self.vlcPlayer.play()
-        # needs to be dynamic
-        self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
+        #     print(f"-- PlayFullConvoNoEvent {_currConvo}")
+        #     # Set callback for convo track finish
+        #     self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
+        #         self.setCallCompleted) #  _currConvo, 
+        #     media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
+        #         conversations[_currConvo]["convoFile"] + ".mp3")
+        #     self.vlcPlayer.set_media(media)
+        #     self.vlcPlayer.play()
+        #     # needs to be dynamic
+        #     self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
 
 
     def playWrongNum(self, pluggedPersonIdx): # , lineIndex
@@ -394,9 +395,6 @@ class Model(qtc.QObject):
                     if (self.phoneLine["callee"]["isPlugged"] < 90):
                         # if (correct callee??)
                         # Stop Hello/Request
-                        print(f"  - trying to stop audio ")
-                        # silence request	
-
                         self.vlcPlayer.stop()
                         # set line engaged
                         self.phoneLine["unPlugStatus"] = self.NO_UNPLUG_STATUS
@@ -404,7 +402,14 @@ class Model(qtc.QObject):
                         self.phoneLine["caller"]["isPlugged"] = True
                         # Start conversation without the ring
                         # For now anyway can't play full convo without sending event so
-                        self.playFullConvoNoEvent(self.currConvo) # ,	lineIdx
+
+
+                        # self.playFullConvoNoEvent(self.currConvo)
+                        print("  - playFullConvo w/o event ")
+                        # None param is for non-existant event
+                        self.playFullConvo(None, self.currConvo)
+
+
 
                         # # If this is redo of call to be interrupted then restar timer
                         # # Disabling call interruption
