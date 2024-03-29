@@ -311,8 +311,8 @@ class MainWindow(qtw.QMainWindow):
         self.areCaptionsContinuing = False
 
     # Mostly from ChatGPT
-    def displayCaptions(self, file_name):
-        with open('captions/' + file_name + '.srt', 'r') as f:
+    def displayCaptions(self, fileType, file_name):
+        with open('captions/' + fileType + '/' + file_name + '.srt', 'r') as f:
             captions = f.read().split('\n\n')
         self.areCaptionsContinuing = True
         self.caption_index = 0

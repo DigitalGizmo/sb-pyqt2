@@ -19,7 +19,7 @@ class Model(qtc.QObject):
     # pinInEvent = qtc.pyqtSignal(int, bool)
     blinkerStart = qtc.pyqtSignal(int)
     blinkerStop = qtc.pyqtSignal()
-    displayCaptionSignal = qtc.pyqtSignal(str)
+    displayCaptionSignal = qtc.pyqtSignal(str, str)
     stopCaptionSignal = qtc.pyqtSignal()
     # Doesn't seem to be used
     checkPinsInEvent = qtc.pyqtSignal() 
@@ -77,7 +77,7 @@ class Model(qtc.QObject):
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
-        self.currConvo = 2
+        self.currConvo = 0
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -214,7 +214,7 @@ class Model(qtc.QObject):
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
-        self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
+        self.displayCaptionSignal.emit('convo', conversations[_currConvo]["convoFile"])
 
     def playWrongNum(self, pluggedPersonIdx): # , lineIndex
         print(f"got to play wrong number, currConvo: {self.currConvo}")
@@ -308,9 +308,6 @@ class Model(qtc.QObject):
         # Hack: receives reCallLine globally 
         self.playHello(self.currConvo) #, self.reCallLine
         # calling playHello direclty with callback would send event param
-        # self.vlcPlayers[lineIdx].stop()
-        # self.setTimeToNextSignal.emit(1000)
-        # self.playHello(_currConvo, lineIdx)
 
     # def handlePlugIn(self, pluggedIdxInfo):
     def handlePlugIn(self, personIdx):
