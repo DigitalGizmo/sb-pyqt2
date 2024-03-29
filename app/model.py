@@ -77,7 +77,7 @@ class Model(qtc.QObject):
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
-        self.currConvo = 0
+        self.currConvo = 2
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -200,17 +200,7 @@ class Model(qtc.QObject):
         self.tonePlayer.set_media(self.toneMedia)
         self.tonePlayer.play()
 
-    # def playFullConvoFromEvent(self, event, _currConvo, lineIndex):
-    #     """ This allows playing fullConvo without sending the event param.
-    #     This happens when the caller is unplugged
-    #     """
-    #     print("inf playFullConvoFromEvent trying to relay to fullConvo")
-    #     self.playFullConvo(self, _currConvo, lineIndex)
-
     def playFullConvo(self, event, _currConvo):
-        # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
-        # self.outgoingTone.stop()
-
         # Stop tone events from calling more times
         # print("  - About to detach toneEvent playFullConvo")
         if ( event != None):
@@ -224,33 +214,7 @@ class Model(qtc.QObject):
             conversations[_currConvo]["convoFile"] + ".mp3")
         self.vlcPlayer.set_media(media)
         self.vlcPlayer.play()
-        # self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
-
-        # self.display_captions('captions/2-Charlie_Calls_Olive.srt')
         self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
-
-        # self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
-
-        # # Called after caller unplugs. Redundant - workaround doe to not needing to 
-        # # stop  calling event. -- must be a better way!
-        # def playFullConvoNoEvent(self, _currConvo): # , lineIndex
-        #     # print(f"fullconvo, convo: {_currConvo}, linedx: {lineIndex}, dummy: {dummy}")
-        #     # self.outgoingTone.stop()
-
-        #     #  no tone event to stop
-        #     self.displayTextSignal.emit(conversations[_currConvo]["convoText"])
-
-        #     print(f"-- PlayFullConvoNoEvent {_currConvo}")
-        #     # Set callback for convo track finish
-        #     self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-        #         self.setCallCompleted) #  _currConvo, 
-        #     media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
-        #         conversations[_currConvo]["convoFile"] + ".mp3")
-        #     self.vlcPlayer.set_media(media)
-        #     self.vlcPlayer.play()
-        #     # needs to be dynamic
-        #     self.displayCaptionSignal.emit(conversations[_currConvo]["convoFile"])
-
 
     def playWrongNum(self, pluggedPersonIdx): # , lineIndex
         print(f"got to play wrong number, currConvo: {self.currConvo}")
@@ -534,7 +498,7 @@ class Model(qtc.QObject):
                 self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
                 # Early in call, retry
-                if (stopTime < 11000):
+                if (stopTime < conversations[self.currConvo]["okTimeConvo"]):
                     # Restart this answer to cal
                     # Mark callee unplugged
                     self.phoneLine["callee"]["isPlugged"] = False
@@ -624,14 +588,8 @@ class Model(qtc.QObject):
             else: # caller not plugged
                 print(" * nothing going on, just unplugging ")
 
-            # print(f' ++ not engaged, callee index: {self.phoneLines[lineIdx]["callee"]["index"]}')
-            # if (self.phoneLines[lineIdx]["callee"]["index"] < 90): # callee jack was unplugged
-            #     print('  ** Unplug on callee thats not engaged ')
-
-            #     self.ledEvent.emit(self.phoneLines[lineIdx]["callee"]["index"], False)
-
-            #     # Clear transcript?
-            #     self.displayText.emit(" ")
+ 
+  
             # else:
             #     # Wasn't callee that was unplugged (& line wasn't engaged),
             #     # so might have been wrong num that was unplugged
