@@ -175,7 +175,8 @@ class Model(qtc.QObject):
         # Proceed with playing -- event may or may not be attached            
         self.vlcPlayer.play()
         # Send msg to screen
-        self.displayTextSignal.emit(conversations[_currConvo]["helloText"])
+        self.displayCaptionSignal.emit('hello', conversations[_currConvo]["helloFile"])
+
 
     def endOperatorOnlyHello(self, event): # , lineIndex
             print("  - About to detach vlcEvent in endOperatorOnlyHello")

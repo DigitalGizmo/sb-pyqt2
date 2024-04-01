@@ -34,13 +34,13 @@ class MainWindow(qtw.QMainWindow):
         # self.label.setText("Keep your ears open for incoming calls! ")
         self.label.setAlignment(qtc.Qt.AlignTop)
 
-        # # Large text
-        # self.label.setFont(QFont('Arial',30))
-        # self.setGeometry(20,80,1200,400)
+        # Large text
+        self.label.setFont(QFont('Arial',30))
+        self.setGeometry(20,80,1200,400)
 
-        # Small text for debug
-        self.label.setFont(QFont('Arial',16))
-        self.setGeometry(15,80,600,250)
+        # # Small text for debug
+        # self.label.setFont(QFont('Arial',16))
+        # self.setGeometry(15,80,600,250)
 
 
         self.setCentralWidget(self.label)
@@ -202,8 +202,8 @@ class MainWindow(qtw.QMainWindow):
         if self.wiggleTimer.isActive():
             self.wiggleTimer.stop()  
 
-        # self.setLED(10, True)          
-        # self.setLED(11, True)          
+        # self.setLED(0, True)          
+        # self.setLED(6, True)          
 
     def continueCheckPin(self):
         # Not able to send param through timer, so pinFlag has been set globaly

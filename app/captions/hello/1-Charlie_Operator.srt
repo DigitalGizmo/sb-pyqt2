@@ -1,2 +1,11 @@
 1
-00:00:00,000 --> 00:00:59,000
+00:00:00,000 --> 00:00:05,800
+Charlie:  Hi.  72 please.
+
+2
+00:00:05,800 --> 00:00:13,900
+Charlie: Please connect me to the Powers residence, number 72?
+
+3
+00:00:13,900 --> 00:00:18,300
+Charlie: Hello operator, are you there? Please get me number 72.
