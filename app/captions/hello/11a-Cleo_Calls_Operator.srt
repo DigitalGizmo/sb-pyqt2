@@ -1,3 +1,11 @@
 1
-00:00:00,000 --> 00:00:16,000
-Hey, can you plese get me Mina?
+00:00:00,000 --> 00:00:06,270
+Cleo:  Hey, can you please get me Mina?
+
+2
+00:00:06,270 --> 00:00:13,565
+Cleo:  Hello, please connect me to Mina.
+
+3
+00:00:13,565 --> 00:00:18,665
+Cleo:  Hey operator, can you help me? Mina Newell, please.

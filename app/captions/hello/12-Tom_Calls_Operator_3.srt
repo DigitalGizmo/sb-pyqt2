@@ -1,3 +1,11 @@
 1
-00:00:00,000 --> 00:00:19,000
-Operator, operator -- I need Mrs. White's house. I don't know Mrs. White. I gotta find Dr. Freeman.
+00:00:00,000 --> 00:00:09,165
+Tom:  Operator, operator, I need Ms. White's house. I don't know Ms. White. I gotta find Doctor Freeman.
+
+2
+00:00:09,165 --> 00:00:16,500
+Tom:  Operator, please connect me to Ms. White's house.
+
+3
+00:00:16,500 --> 00:00:19,382
+Tom:  Hello? I need to speak to Ms. White.

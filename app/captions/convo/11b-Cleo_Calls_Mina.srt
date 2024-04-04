@@ -1,7 +1,19 @@
 1
-00:00:00,000 --> 00:09:01,100
-Mina: Hello? <br/> 
-Teen: Hey Mina, I failed the math test! Can I borrow your notes? <br/> 
-Mina: Yeah, come on over. Oh! And I'll tell you about the fire. <br/> 
-Teen Oooh, okay, be right over. <br/> 
-Mina: See you.
+00:00:00,000 --> 00:00:01,480
+Mina: Hello?
+
+2
+00:00:01,480 --> 00:00:06,488
+Cleo: Hey Mina, I failed the math test! Can I borrow your notes?
+
+3
+00:00:06,488 --> 00:00:10,452
+Mina: Yeah, come on over. Oh! And I'll tell you all about the fire.
+
+4
+00:00:10,452 --> 00:00:13,700
+Cleo: Oooh, okay, be right over.
+
+5
+00:00:13,700 --> 00:00:15,500
+Mina: I'll see you.

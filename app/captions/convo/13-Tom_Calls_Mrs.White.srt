@@ -1,13 +1,35 @@
 1
-00:00:00,000 --> 00:09:01,100
-Mrs. Mildred White: Hello. White residence. <br/> 
-Tom: Is Dr. Freeman there? <br/> 
-Mrs. Mildred White: Why yes, how did you know? He's right <br/> 
-Tom: I gotta talk to him.  <br/> 
-Mrs. Mildred White: O dear all right…(off phone) It's for you, Doctor.  <br/>
-Dr. Freeman: Yes? <br/> 
-Tom: We got a fire, Doctor, and Mikey's coughing and coughing. You know the smoke… <br/> 
-Dr. Freeman: Who is this? <br/> 
-Tom: Tom Libby. The barn's burned, we're Ok, but you better see Mikey. <br/> Dr. Freeman: All right, Tom. Keep him sitting up and give him some water, <br/> 
-if he'll take it. And why don't you sit down and have a glass of water, too. <br/> 
-I'm glad you found me. I'll be right over.
+00:00:00,000 --> 00:00:01,840
+Mrs. Mildred White: Hello. White residence. 
+
+2
+00:00:01,840 --> 00:00:03,230
+Tom: Is Dr. Freeman there?
+
+3
+00:00:03,230 --> 00:00:06,565
+Mrs. Mildred White: Why yes, how did you know? He's right...
+Tom: I gotta talk to him.
+
+4
+00:00:06,565 --> 00:00:10,410
+Mrs. Mildred White: Oh dear, all right. It's for you, Doctor. 
+
+5
+00:00:10,410 --> 00:00:15,375
+Dr. Freeman: Yes?
+Tom: We got a fire, Doctor, and Mikey's coughing and coughing. You know the smoke…
+
+6
+00:00:15,375 --> 00:00:19,350
+Dr. Freeman: Who is this?
+Tom: It's Tom Libby. The barn's burned, we're okay, but you better see Mikey.
+
+7
+00:00:19,350 --> 00:00:25,565
+Dr. Freeman: All right, Tom. Keep him sitting up and give him some water,
+if he'll take it. And why don't you sit down and have a glass of water, too?
+
+8
+00:00:25,565 --> 00:00:28,180
+Dr. Freeman: I'm glad you found me. I'll be right over.
