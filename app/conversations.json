@@ -39,7 +39,7 @@
     "convoFile": "",
     "retryAfterWrongFile": "",
     "retryAfterWrongText": "",
-    "okTimeHello": 3000,
+    "okTimeHello": 9400,
     "okTimeConvo": 0
   },  
   {

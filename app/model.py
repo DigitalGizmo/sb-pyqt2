@@ -318,13 +318,12 @@ class Model(qtc.QObject):
         # lineIdx = pluggedIdxInfo['lineIdx']
         lineIdx = 0
 
-        # ********
-        # Fresh plug-in -- aka caller not plugged
-        # *******/
-        # Is this new use of this line -- caller has not been plugged in.
-
         print(f' - Start handlePlugIn, personIdx: {personIdx}'
               f' is caller plugged: {self.phoneLine["caller"]["isPlugged"]}')
+        # ********
+        # Fresh plug-in -- aka caller wasn't plugged yet
+        # Is this new use of this line -- caller has not been plugged in.
+        # *******/
         if (not self.phoneLine["caller"]["isPlugged"]): # New line - Caller not plugged
             # Did user plug into the actual caller?
             if personIdx == self.currCallerIndex: # Correct caller
@@ -415,10 +414,10 @@ class Model(qtc.QObject):
                 print("wrong jack -- or wrong line")
                 self.displayTextSignal.emit("That's not the jack for the person who is asking you to connect!")
 
+        #********
+        # Other end of the line -- caller is plugged, so this must be the callee
+        #********/
         else: # caller is plugged
-			#********
-		    # Other end of the line -- caller is plugged, so this must be the other plug
-			#********/
 			# But first, make sure this is the line in use
             # print(f"Which line in use: {lineIdx}")
             # if (lineIdx == self.whichLineInUse): # This is the line in use
@@ -430,6 +429,8 @@ class Model(qtc.QObject):
             # Stop the hello operator track,  whether this is the correct
             # callee or not
             self.vlcPlayer.stop() # vlcPlayers[lineIdx]
+            # Also stop captions
+            self.stopCaptionSignal.emit()
             # Set callee -- used by unPlug even if it's the wrong number
             self.phoneLine["callee"]["index"] = personIdx
             if (personIdx == self.currCalleeIndex): # Correct callee

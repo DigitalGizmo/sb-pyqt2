@@ -139,26 +139,35 @@ class MainWindow(qtw.QMainWindow):
                         # print(f"pin {pin_flag} from model = {self.model.getPinsIn(pin_flag)}")
                         if (not self.awaitingRestart):
 
-                            # Disabling wiggle check
-                            # # If this pin is in, delay before checking
-                            # # to protect against inadvertent wiggle
-                            if (self.model.getIsPinIn(pin_flag) == True):
 
-                                # print(f" ** pin {pin_flag} is already in - so wiggle wait")
-                                # This will trigger a pause
-                                self.wiggleDetected.emit()
 
-                            else: # pin is not in, new event
 
-                                # elif (not self.awaitingRestart):
+                            # # Disabling wiggle check
+                            # # # If this pin is in, delay before checking
+                            # # # to protect against inadvertent wiggle
+                            # if (self.model.getIsPinIn(pin_flag) == True):
 
-                                # do standard check
-                                self.just_checked = True
-                                # The following signal starts a timer that will continue
-                                # the check. This provides bounce protection
-                                # This signal is separate from the main python event loop
-                                # This emit will start bounc_timer with 300
-                                self.plugEventDetected.emit()
+                            #     # print(f" ** pin {pin_flag} is already in - so wiggle wait")
+                            #     # This will trigger a pause
+                            #     self.wiggleDetected.emit()
+
+                            # else: # pin is not in, new event
+
+                            #     # elif (not self.awaitingRestart):
+
+                            #     # do standard check
+                            #     self.just_checked = True
+                            #     # The following signal starts a timer that will continue
+                            #     # the check. This provides bounce protection
+                            #     # This signal is separate from the main python event loop
+                            #     # This emit will start bounc_timer with 300
+                            #     self.plugEventDetected.emit()
+
+
+
+
+                            self.plugEventDetected.emit()
+
 
                         else: # awaiting restart
                             print(" ** pin activity while awaiting restart")
@@ -254,14 +263,16 @@ class MainWindow(qtw.QMainWindow):
     def checkWiggle(self):
         print(" * got to checkWiggle")
         # self.wiggleTimer.stop() -- now singleShot
-        # Check whether the pin still grounded
+        # Check whether the pin is still grounded aka False
         # if no longer grounded, proceed with event detection
         if (not self.pins[self.pinFlag].value == False):
             # The pin is no longer in
             self.just_checked = True
             self.plugEventDetected.emit()
-        # else: still grounded -- do nothing
+        else: 
+            # still grounded -- do nothing
             # pin has been removed during pause
+            print(f'in wiggle-- not supposed to get here - grounded')
 
     def displayText(self, msg):
         self.label.setText(msg)        
