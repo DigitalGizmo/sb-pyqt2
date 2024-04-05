@@ -51,7 +51,12 @@ class MainWindow(qtw.QMainWindow):
         self.bounceTimer.setSingleShot(True)
         self.blinkTimer=qtc.QTimer()
         self.blinkTimer.timeout.connect(self.blinker)
-        # Supress interrupt when plug is just wiggled
+
+        # self.captionTimer=qtc.QTimer()
+        # self.captionTimer.setSingleShot(True)
+        # self.captionTimer.timeout.connect()
+
+        # Supress interrupt when plug is just wiggled (disabled)
         self.wiggleDetected.connect(lambda: self.wiggleTimer.start(80))
         self.wiggleTimer=qtc.QTimer()
         self.wiggleTimer.setSingleShot(True)
@@ -323,6 +328,8 @@ class MainWindow(qtw.QMainWindow):
         self.areCaptionsContinuing = True
         self.caption_index = 0
 
+        # reset timer
+
         def time_str_to_ms(time_str):
             hours, minutes, seconds_ms = time_str.split(':')
             seconds, milliseconds = seconds_ms.split(',')
@@ -336,8 +343,7 @@ class MainWindow(qtw.QMainWindow):
                 # print(f'full entry: {caption}')
                 if '-->' in caption:
                     number, time, text = caption.split('\n', 2)
-                    # print(f'time: {time}, text: {text}')
-                    # self.caption_label.setText(text)
+                    print(f'#: {number} time: {time}, text: {text}')
 
                     # Stop if unplugged
                     if (self.areCaptionsContinuing):
@@ -351,7 +357,11 @@ class MainWindow(qtw.QMainWindow):
                     duration_ms = end_time_ms - start_time_ms
 
                     if (self.areCaptionsContinuing):
+
                         qtc.QTimer.singleShot(duration_ms, display_next_caption)
+
+                        # self.captionTimer(duration_ms, display_next_caption)
+
                 self.caption_index += 1
 
         display_next_caption()
