@@ -21,6 +21,7 @@ class Model(qtc.QObject):
     blinkerStop = qtc.pyqtSignal()
     displayCaptionSignal = qtc.pyqtSignal(str, str)
     stopCaptionSignal = qtc.pyqtSignal()
+    startResetSignal = qtc.pyqtSignal()
     # Doesn't seem to be used
     checkPinsInEvent = qtc.pyqtSignal() 
     
@@ -32,6 +33,7 @@ class Model(qtc.QObject):
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
     buzzPlayer.set_media(buzzInstace.media_new_path("/home/piswitch/Apps/sb-audio/buzzer.mp3"))
+    buzzEvents = buzzPlayer.event_manager()
 
     toneInstace = vlc.Instance()
     tonePlayer = toneInstace.media_player_new()
@@ -143,8 +145,13 @@ class Model(qtc.QObject):
             # Set "target", person being called
             self.currCalleeIndex = conversations[self.currConvo]["callee"]["index"]
             # This just rings the buzzer. Next action will
-            # be when user plugs in a plug - in Panel.svelte drag end: handlePlugIn
+            # be when user plugs in a plug 
             # buzzTrack.volume = .6   
+
+
+            self.buzzEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
+                self.restartOnTimeout) 
+
             self.buzzPlayer.play()
             self.blinkerStart.emit(conversations[self.currConvo]["caller"]["index"])
             self.displayTextSignal.emit("Incoming call..")
@@ -369,37 +376,8 @@ class Model(qtc.QObject):
                         self.playFullConvo(None, self.currConvo)
 
 
-
-                        # # If this is redo of call to be interrupted then restar timer
-                        # # Disabling call interruption
-                        # if (self.currConvo == 0 or self.currConvo == 4):
-                        #     print('    (starting timer for call that will interrupt)')
-                        #     # Move que to next call
-                        #     self.currConvo += 1
-                        #     # Handle to stop double increment
-                        #     # self.interruptingCallInHasBeenInitiated = True
-                        #     # Set awaitingInterrupt = true;
-                        #     self.phoneLines[lineIdx]["unPlugStatus"] = self.AWAITING_INTERRUPT
-                        #     # clearTimeout(callInitTimer)
-                        #     self.setTimeToNext(11000); # less than reg 15 secs bcz no ring
                     else:
                         print('   We should not get here');
-                # # Disabling multi-call
-                # elif (self.prevLineInUse >= 0): # Silence other conversation, if there is one
-                #     print(f'  - silencing call on line: {self.prevLineInUse}')
-                #     # Set unplug status so that unplugging this silenced call will
-                #     # handled correctly by..
-                #     self.phoneLines[self.prevLineInUse]["unPlugStatus"] = self.DURING_INTERRUPT_SILENCE
-
-                #     self.vlcPlayers[self.prevLineInUse].stop()
-                #     # self.vlcPlayers[self.prevLineInUse].audio_set_volume(10)
-                #     # Can't set volume on one instance withoug affect all
-                #     # Work-around using timer
-                #     # Set hacked global param. 
-                #     # Fix if I figure out how to send params through timver
-                #     self.silencedCallLine = self.prevLineInUse
-                #     self.silencedCalTimer.start(4000)
-
 
                 #     self.playHello(self.currConvo, lineIdx)
                 else: # Regular, just play incoming Hello/Request
@@ -430,7 +408,7 @@ class Model(qtc.QObject):
             # Also stop captions
             self.stopCaptionSignal.emit()
 
-            
+
             # Set callee -- used by unPlug even if it's the wrong number
             self.phoneLine["callee"]["index"] = personIdx
             if (personIdx == self.currCalleeIndex): # Correct callee
@@ -442,23 +420,6 @@ class Model(qtc.QObject):
                 # # Silence incoming Hello/Request, if necessary
                 # self.vlcPlayers[lineIdx].stop()
                 self.playConvo(self.currConvo)
-
-                # # Disableing mult-calls
-                # # Set timer for next call
-                # # Hard-wire to interrupt two calls
-                # if (self.currConvo == 0 or self.currConvo == 4):
-                #     print('    (starting timer for call that will interrupt)')
-                #     # Move que to next call
-                #     self.currConvo += 1
-                #     # Handle to stop double increment
-                #     # self.interruptingCallInHasBeenInitiated = True
-                #     # Set awaitingInterrupt = true;
-                #     self.phoneLines[lineIdx]["unPlugStatus"] = self.AWAITING_INTERRUPT
-                #     self.setTimeToNext(15000)
-
-                # # if (personIdx == 11 and (self.currConvo == 1)):
-                # #     print("unsetting interruptingCallInHasBeenInitiated")
-                # #     self.interruptingCallInHasBeenInitiated = False
 
             else: # Wrong number
                 print("wrong number")
@@ -530,34 +491,9 @@ class Model(qtc.QObject):
             else: 
                 print('    This should not happen')
 
-        # Phone line is not engaged -- isEngaged == False
-
-        # # # First, maybe this is an unplug of "old" call to free up the plugg
-        # # # caller would be plugged
-        # elif (self.phoneLines[lineIdx]["caller"]["isPlugged"] == True):
-        #     print(f'  Unplug on wrong number, personIdx: {personIdx}')
-        #     # Cover for before personidx defined
-        #     if (personIdx < 99):
-        #         self.ledEvent.emit(personIdx, False)
-            
-        # # With the above, are the following two conditions ever satisfied?
-        # elif (self.phoneLines[lineIdx]["unPlugStatus"] == self.REPLUG_IN_PROGRESS):
-        #     # Don't do anything about unplug if one end of the line
-        #     # has already been unplugged.
-        #     print('  Re-plug in progress - unplugging the other end ')
-        #     # This is the remaining end unplugged, so clear the REPLUG
-        #     self.phoneLines[lineIdx]["unPlugStatus"] = self.NO_UNPLUG_STATUS
-            
-        #     # Somewher in here condition for if CALLER_UNPLUGGED then
-        #     # 		don't unplug the callee
-        # elif (self.phoneLines[lineIdx]["unPlugStatus"] == self.CALLER_UNPLUGGED):
-        #     # Also test for whether this unplug was an erroneous attempt
-        #     # at re-plugging the caller??
-        #     print('   Unplugg on the wrong jack during caller unplug')
-
         # ---- Conversation NOT in progress --- 
         else:   
-            # Line was not fully engaged 
+            # Phone line is not engaged -- isEngaged == False
             print(f' - not engaged, callee index: {self.phoneLine["callee"]["index"]}'
                   f'    caller index: {self.phoneLine["caller"]["index"]}'
                   )
@@ -598,27 +534,6 @@ class Model(qtc.QObject):
 
             else: # caller not plugged
                 print(" * nothing going on, just unplugging ")
-
- 
-  
-            # else:
-            #     # Wasn't callee that was unplugged (& line wasn't engaged),
-            #     # so might have been wrong num that was unplugged
-            #     # Need to turn off LED
-            #     # print(f'  Unplug was prob on wrong number, personIdx: {personIdx}')
-            #     # # Cover for before personidx defined
-            #     # if (personIdx < 99):
-            #     #     self.ledEvent.emit(personIdx, False)
-            #     print("orphaned else in unplug")
-
-            # self.vlcPlayers[lineIdx].stop()
-        
-            # #  and if was during isWrongNumInProgress
-            # # then 
-            #     # (just) turn off this led
-            #     # which allows another plugin?
-
-
 
         # After all is said and done, this was unplugged, So, set pinIn False
         # self.setPinInLine(personIdx, -1)
@@ -689,23 +604,12 @@ class Model(qtc.QObject):
     def handleStart(self):
         """Just for startup
         """
-        # hasSoftPinsIn = False
-        # for pinVal in self.pinsInLine:
-        #     # print(f"pinVal: {pinVal}")
-        #     if pinVal >= 0:
-        #         hasSoftPinsIn = True
-
-        # self.checkPinsInEvent.emit()
-
-
-        # if hasSoftPinsIn:
-        #     self.stopAllAudio()
-        #     self.displayText.emit("pins still in, remove and press Start again")
-        #     # print("pins still in, remove and press Start again")
-
-        # else:
         print("got to model.handleStart")
         self.reset()
-        # self.initiateCall()
         self.callInitTimer.start(2000)
 
+    def restartOnTimeout(self, event):
+        print('auto starting reset')
+        self.buzzEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
+        self.blinkerStop.emit()
+        self.startResetSignal.emit()

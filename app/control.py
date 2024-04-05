@@ -84,6 +84,7 @@ class MainWindow(qtw.QMainWindow):
         # self.model.checkPinsInEvent.connect(self.checkPinsIn)
         self.model.displayCaptionSignal.connect(self.displayCaptions)
         self.model.stopCaptionSignal.connect(self.stopCaptions)
+        self.model.startResetSignal.connect(self.startReset)
    
 
         # Initialize the I2C bus:
@@ -144,20 +145,14 @@ class MainWindow(qtw.QMainWindow):
                     if (not self.just_checked):
                         self.pinFlag = pin_flag
 
-                        # print(f"pin {pin_flag} from model = {self.model.getPinsIn(pin_flag)}")
-                        if (not self.awaitingRestart):
-
                             # # Disabling wiggle check
                             # # # If this pin is in, delay before checking
                             # # # to protect against inadvertent wiggle
                             # if (self.model.getIsPinIn(pin_flag) == True):
-
                             #     # print(f" ** pin {pin_flag} is already in - so wiggle wait")
                             #     # This will trigger a pause
                             #     self.wiggleDetected.emit()
-
                             # else: # pin is not in, new event
-
                             #     # elif (not self.awaitingRestart):
 
                             #     # do standard check
@@ -167,18 +162,16 @@ class MainWindow(qtw.QMainWindow):
                             #     # This signal is separate from the main python event loop
                             #     # This emit will start bounc_timer with 300
                             #     self.plugEventDetected.emit()
-
-                            self.plugEventDetected.emit()
-
-                        else: # awaiting restart
-                            print(" ** pin activity while awaiting restart")
-                            self.just_checked = False
+                            
+                        self.plugEventDetected.emit()
+                        # Starts bounceTimer which call continuePinCheck
 
                 else:
                     print("got to interupt 12 or greater")
                     if (pin_flag == 13 and self.pins[13].value == False):
                         # if (self.pins[13].value == False):
-                        self.startPressed.emit()
+                        self.startPressed.emit() # Calls startReset
+                        
                     # self.pinsLed[0].value = True
         # As of 2024-03-23 bounctime had been 100, changed to 150
         GPIO.add_event_detect(interrupt, GPIO.BOTH, callback=checkPin, bouncetime=50)
@@ -218,30 +211,36 @@ class MainWindow(qtw.QMainWindow):
         print(f" * In continue, pinFlag = {str(self.pinFlag)} " 
               f"  * value: {str(self.pins[self.pinFlag].value)}")
 
-        if (self.pins[self.pinFlag].value == False): # grounded by tip
-            """
-            False/grouded, then this event is a plug-in
-            """
-            # Send pin index to model.py as an int 
-            # Model uses signals for LED, text and pinsIn to set here
-            self.plugInToHandle.emit(self.pinFlag)
-        else: # pin flag True, still, or again, high
-            # print(f"  ** got to pin disconnected in continueCheckPin")
+        if (self.awaitingRestart):
+            # do nothing - awaiting press of start button
+            print('awaiting restart')
+        else:
+            # Regular pin out
+            if (self.pins[self.pinFlag].value == False): 
+                # grounded by tip, aka connected
+                """
+                False/grouded, then this event is a plug-in
+                """
+                # Send pin index to model.py as an int 
+                # Model uses signals for LED, text and pinsIn to set here
+                self.plugInToHandle.emit(self.pinFlag)
+            else: # pin flag True, still, or again, high
+                # aka not connected
+                # print(f"  ** got to pin disconnected in continueCheckPin")
 
-            # was this a legit unplug?
-            if (self.model.getIsPinIn(self.pinFlag)):
-                # print(f"Pin {self.pinFlag} has been disconnected \n")
+                # was this a legit unplug?
+                if (self.model.getIsPinIn(self.pinFlag)):
+                    # if this pin was in
+                    # print(f"Pin {self.pinFlag} has been disconnected \n")
+                    print(f" * pin {self.pinFlag} was in - handleUnPlug")
 
-                # pinsIn : instead of True/False make it hold line index
-                print(f" * pin {self.pinFlag} was in - handleUnPlug")
+                    # On unplug we can't tell which line electonicaly 
+                    # (diff in shaft is gone), so rely on pinsIn info
+                    self.unPlugToHandle.emit(self.pinFlag) # , self.whichLinePlugging
+                    # Model handleUnPlug will set pinsIn false for this on
+                else:
+                    print(" ** got to pin true (changed to high), but not pin in")
 
-                # On unplug we can't tell which line electonicaly 
-                # (diff in shaft is gone), so rely on pinsIn info
-                self.unPlugToHandle.emit(self.pinFlag) # , self.whichLinePlugging
-                # Model handleUnPlug will set pinsIn false for this on
-            else:
-                print(" ** got to pin true (changed to high), but not pin in")
-        
         # Delay setting just_check to false in case the plug is wiggled
         # qtc.QTimer.singleShot(300, self.delayedFinishCheck)
         # qtc.QTimer.singleShot(70, self.delayedFinishCheck)
@@ -288,6 +287,11 @@ class MainWindow(qtw.QMainWindow):
     def stopBlinker(self):
         if self.blinkTimer.isActive():
             self.blinkTimer.stop()
+
+    def setLEDsOff(self):
+        for pinIndex in range(0, 12):
+            self.setLED(pinIndex, False)
+
     def getAnyPinsIn(self):
         anyPinsIn = False
 
@@ -299,6 +303,8 @@ class MainWindow(qtw.QMainWindow):
     def startReset(self):
         print("reseting, starting")
         self.awaitingRestart = True
+        self.stopCaptions()
+        self.setLEDsOff()
         self.model.stopAllAudio()
         self.model.stopTimers()
         # _anyPinsIn = self.getAnyPinsIn()
