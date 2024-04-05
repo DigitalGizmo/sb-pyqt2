@@ -52,9 +52,12 @@ class MainWindow(qtw.QMainWindow):
         self.blinkTimer=qtc.QTimer()
         self.blinkTimer.timeout.connect(self.blinker)
 
-        # self.captionTimer=qtc.QTimer()
-        # self.captionTimer.setSingleShot(True)
-        # self.captionTimer.timeout.connect()
+        self.captionTimer=qtc.QTimer()
+        self.captionTimer.setSingleShot(True)
+        self.captionTimer.timeout.connect(self.display_next_caption)
+        self.captionIndex = 0
+        self.captions = 'empty'
+        self.areCaptionsContinuing = True
 
         # Supress interrupt when plug is just wiggled (disabled)
         self.wiggleDetected.connect(lambda: self.wiggleTimer.start(80))
@@ -81,7 +84,7 @@ class MainWindow(qtw.QMainWindow):
         # self.model.checkPinsInEvent.connect(self.checkPinsIn)
         self.model.displayCaptionSignal.connect(self.displayCaptions)
         self.model.stopCaptionSignal.connect(self.stopCaptions)
-        self.areCaptionsContinuing = True
+   
 
         # Initialize the I2C bus:
         i2c = busio.I2C(board.SCL, board.SDA)
@@ -321,50 +324,87 @@ class MainWindow(qtw.QMainWindow):
     def stopCaptions(self):
         self.areCaptionsContinuing = False
 
+    def time_str_to_ms(self, time_str):
+        hours, minutes, seconds_ms = time_str.split(':')
+        seconds, milliseconds = seconds_ms.split(',')
+        return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
+
+
     # Mostly from ChatGPT
     def displayCaptions(self, fileType, file_name):
         with open('captions/' + fileType + '/' + file_name + '.srt', 'r') as f:
-            captions = f.read().split('\n\n')
+            self.captions = f.read().split('\n\n')
         self.areCaptionsContinuing = True
-        self.caption_index = 0
+        self.captionIndex = 0
 
         # reset timer
 
-        def time_str_to_ms(time_str):
-            hours, minutes, seconds_ms = time_str.split(':')
-            seconds, milliseconds = seconds_ms.split(',')
-            return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
+        # def time_str_to_ms(time_str):
+        #     hours, minutes, seconds_ms = time_str.split(':')
+        #     seconds, milliseconds = seconds_ms.split(',')
+        #     return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
 
-        def display_next_caption():
-            # print('got to display_next_caption')
-            nonlocal self
-            if self.caption_index < len(captions):
-                caption = captions[self.caption_index]
-                # print(f'full entry: {caption}')
-                if '-->' in caption:
-                    number, time, text = caption.split('\n', 2)
-                    print(f'#: {number} time: {time}, text: {text}')
+        # def display_next_caption():
+        #     # print('got to display_next_caption')
+        #     nonlocal self
+        #     if self.caption_index < len(captions):
+        #         caption = captions[self.caption_index]
+        #         # print(f'full entry: {caption}')
+        #         if '-->' in caption:
+        #             number, time, text = caption.split('\n', 2)
+        #             print(f'#: {number} time: {time}, text: {text}')
 
-                    # Stop if unplugged
-                    if (self.areCaptionsContinuing):
-                        self.displayText(text)
+        #             # Stop if unplugged
+        #             if (self.areCaptionsContinuing):
+        #                 self.displayText(text)
 
-                    # Proccess time
-                    times = time.split(' --> ')
-                    # print(f'times[0]: {times[0]}')
-                    start_time_ms = time_str_to_ms(times[0])
-                    end_time_ms = time_str_to_ms(times[1])
-                    duration_ms = end_time_ms - start_time_ms
+        #             # Proccess time
+        #             times = time.split(' --> ')
+        #             # print(f'times[0]: {times[0]}')
+        #             start_time_ms = self.time_str_to_ms(times[0])
+        #             end_time_ms = self.time_str_to_ms(times[1])
+        #             duration_ms = end_time_ms - start_time_ms
 
-                    if (self.areCaptionsContinuing):
+        #             if (self.areCaptionsContinuing):
 
-                        qtc.QTimer.singleShot(duration_ms, display_next_caption)
+        #                 qtc.QTimer.singleShot(duration_ms, display_next_caption)
 
-                        # self.captionTimer(duration_ms, display_next_caption)
+        #                 # self.captionTimer(duration_ms, display_next_caption)
 
-                self.caption_index += 1
+        #         self.caption_index += 1
 
-        display_next_caption()
+        self.display_next_caption()
+
+    def display_next_caption(self):
+        # print('got to display_next_caption')
+        # nonlocal self
+        if self.captionIndex < len(self.captions):
+            caption = self.captions[self.captionIndex]
+            # print(f'full entry: {caption}')
+            if '-->' in caption:
+                number, time, text = caption.split('\n', 2)
+                print(f'#: {number} time: {time}, text: {text}')
+
+                # Stop if unplugged
+                if (self.areCaptionsContinuing):
+                    self.displayText(text)
+
+                # Proccess time
+                times = time.split(' --> ')
+                # print(f'times[0]: {times[0]}')
+                start_time_ms = self.time_str_to_ms(times[0])
+                end_time_ms = self.time_str_to_ms(times[1])
+                duration_ms = end_time_ms - start_time_ms
+
+                if (self.areCaptionsContinuing):
+
+                    # qtc.QTimer.singleShot(duration_ms, self.display_next_caption(captions, caption_index + 1))
+
+                    self.captionTimer.start(duration_ms)
+
+
+            self.captionIndex += 1
+
 
 app = qtw.QApplication([])
 
