@@ -39,10 +39,6 @@ class Model(qtc.QObject):
     toneMedia = toneInstace.media_new_path("/home/piswitch/Apps/sb-audio/outgoing-ring.mp3")
     tonePlayer.set_media(toneMedia)
 
-    # vlcInstances = [vlc.Instance(), vlc.Instance()]
-    # vlcPlayers = [vlcInstances[0].media_player_new(), vlcInstances[1].media_player_new()]
-    # vlcEvents = [vlcPlayers[0].event_manager(), vlcPlayers[1].event_manager()]
-
     vlcInstance = vlc.Instance()
     vlcPlayer = vlcInstance.media_player_new()
     vlcEvent = vlcPlayer.event_manager()
@@ -76,7 +72,7 @@ class Model(qtc.QObject):
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         
-        self.currConvo = 3
+        self.currConvo = 0
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -433,6 +429,8 @@ class Model(qtc.QObject):
             self.vlcPlayer.stop() # vlcPlayers[lineIdx]
             # Also stop captions
             self.stopCaptionSignal.emit()
+
+            
             # Set callee -- used by unPlug even if it's the wrong number
             self.phoneLine["callee"]["index"] = personIdx
             if (personIdx == self.currCalleeIndex): # Correct callee
@@ -505,7 +503,10 @@ class Model(qtc.QObject):
                     # Mark callee unplugged
                     self.phoneLine["callee"]["isPlugged"] = False
                     self.phoneLine["isEngaged"] = False
-                    # self.vlcPlayer.stop()	# redundant
+
+                    # stop captions
+                    self.stopCaptionSignal.emit()
+
                     # Leave caller plugged in, replay hello
                     self.setTimeReCall(self.currConvo)
                 else:
@@ -573,31 +574,16 @@ class Model(qtc.QObject):
                     print("     caller unplugged")
                     stopTime = self.vlcPlayer.get_time()
                     self.vlcPlayer.stop() # vlcPlayers[lineIdx]
-
-
-
-                    # # Turn off callee LED
-                    # self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
-
-
-                    # if operator only and after okay
-
+                    #  LED handled by either condition below
                     # If this is a hello only call # And if we're close enough to the end
                     if ((self.currConvo == 3 or  self.currConvo == 8) and
                         stopTime > conversations[self.currConvo]["okTimeHello"]):
-                        
-                        # if (stopTime > conversations[self.currConvo]["okTimeHello"]):
-                            # Close enough to end, move on 
+                        # Close enough to end, move on 
                         print(f'  - stopped operator only caller with time: {stopTime}')
-
                         self.endOperatorOnlyHello(None)
-
                     else:
-
                         self.clearTheLine()
                         self.callInitTimer.start(1000)
-
-
                 elif (self.phoneLine["unPlugStatus"] == self.WRONG_NUM_IN_PROGRESS):
                     # Unplugging wrong num
                     print(f'  Unplug on wrong number, personIdx: {personIdx}')
