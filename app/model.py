@@ -75,9 +75,8 @@ class Model(qtc.QObject):
         # Put pinsIn here in model where it's used more often
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
-        # self.pinsInLine = [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
         
-        self.currConvo = 0
+        self.currConvo = 3
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -180,12 +179,15 @@ class Model(qtc.QObject):
 
     def endOperatorOnlyHello(self, event): # , lineIndex
             print("  - About to detach vlcEvent in endOperatorOnlyHello")
-            self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached) 
+
+            if ( event != None):
+                self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
+
             #  supress further callbacks self.supressCallback
             # Don't know what this did in software proto
             # setHelloOnlyCompleted(lineIndex)
             self.clearTheLine() # lineIndex
-            print(f" ** Hello-only ended.  Bump currConvo from {self.currConvo}")
+            print(f" - Hello-only ended.  Bump currConvo from {self.currConvo}")
             self.currConvo += 1
             # Timers can't be started from another thread
             self.setTimeToNextSignal.emit(1000)
@@ -476,8 +478,9 @@ class Model(qtc.QObject):
             )
         # if not during restart!
 
-        # If conversation is in progress -- engaged (implies correct callee)
+        # ---- Conversation in progress --- 
         if (self.phoneLine["isEngaged"]):
+            # If conversation is in progress -- engaged (implies correct callee)
             print(f'  - Unplugging a call in progress person id: {persons[personIdx]["name"]} ' )
             # Get stop time
             stopTime = self.vlcPlayer.get_time()
@@ -496,7 +499,7 @@ class Model(qtc.QObject):
                 # Turn off callee LED
                 self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
-                # Early in call, retry
+                # If Early in call, retry
                 if (stopTime < conversations[self.currConvo]["okTimeConvo"]):
                     # Restart this answer to cal
                     # Mark callee unplugged
@@ -506,7 +509,7 @@ class Model(qtc.QObject):
                     # Leave caller plugged in, replay hello
                     self.setTimeReCall(self.currConvo)
                 else:
-                    # end convo and move on
+                    # Late in call -- end convo and move on
                     print(f'  - stopped with time: {stopTime}')
                     self.setCallCompleted(self)
 
@@ -551,8 +554,9 @@ class Model(qtc.QObject):
         #     # at re-plugging the caller??
         #     print('   Unplugg on the wrong jack during caller unplug')
 
-        # Phone line is not engaged -- isEngaged == False
-        else:   # Line was not fully engaged 
+        # ---- Conversation NOT in progress --- 
+        else:   
+            # Line was not fully engaged 
             print(f' - not engaged, callee index: {self.phoneLine["callee"]["index"]}'
                   f'    caller index: {self.phoneLine["caller"]["index"]}'
                   )
@@ -563,14 +567,36 @@ class Model(qtc.QObject):
             if (self.phoneLine["caller"]["isPlugged"] == True):
                 # Caller has initiated a call
 
-                # If this is the caller being unplugged (erroneously)
-                # if incoming person index == caller for this convo
+                # If this is the caller being unplugged (erroneously or early)
+                # Correct caller unplugging?
                 if (personIdx == self.phoneLine["caller"]["index"]):
                     print("     caller unplugged")
+                    stopTime = self.vlcPlayer.get_time()
                     self.vlcPlayer.stop() # vlcPlayers[lineIdx]
-                    self.clearTheLine()
 
-                    self.callInitTimer.start(1000)
+
+
+                    # # Turn off callee LED
+                    # self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
+
+
+                    # if operator only and after okay
+
+                    # If this is a hello only call # And if we're close enough to the end
+                    if ((self.currConvo == 3 or  self.currConvo == 8) and
+                        stopTime > conversations[self.currConvo]["okTimeHello"]):
+                        
+                        # if (stopTime > conversations[self.currConvo]["okTimeHello"]):
+                            # Close enough to end, move on 
+                        print(f'  - stopped operator only caller with time: {stopTime}')
+
+                        self.endOperatorOnlyHello(None)
+
+                    else:
+
+                        self.clearTheLine()
+                        self.callInitTimer.start(1000)
+
 
                 elif (self.phoneLine["unPlugStatus"] == self.WRONG_NUM_IN_PROGRESS):
                     # Unplugging wrong num
