@@ -70,7 +70,7 @@
     "callee":{"index": 0}, "calleeLabel": "  Mina",
     "helloFile": "11a-Cleo_Calls_Operator",
     "convoFile": "11b-Cleo_Calls_Mina",
-    "retryAfterWrongFile": "Cleo_wrongNumber_Caller",
+    "retryAfterWrongFile": "Cleo_WrongNumber_Caller",
     "retryAfterWrongText": "No, that's not who I want, get me Mina Newell please.",
     "okTimeHello": 3000,
     "okTimeConvo": 10200
@@ -94,7 +94,7 @@
     "convoFile": "",
     "retryAfterWrongFile": "",
     "retryAfterWrongText": "",
-    "okTimeHello": 3000,
+    "okTimeHello": 14200,
     "okTimeConvo": 0
   } 
 ]

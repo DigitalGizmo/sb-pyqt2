@@ -74,7 +74,7 @@ class Model(qtc.QObject):
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         
-        self.currConvo = 0
+        self.currConvo = 8
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -147,7 +147,6 @@ class Model(qtc.QObject):
             # This just rings the buzzer. Next action will
             # be when user plugs in a plug 
             # buzzTrack.volume = .6   
-
 
             self.buzzEvents.event_attach(vlc.EventType.MediaPlayerEndReached, 
                 self.restartOnTimeout) 
@@ -290,6 +289,12 @@ class Model(qtc.QObject):
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             "FinishedActivity.mp3")
         self.vlcPlayer.set_media(media)
+
+        self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
+
+
+
+
         self.vlcPlayer.play()
 
     # def supressCallback(self, event):
