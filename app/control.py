@@ -323,6 +323,8 @@ class MainWindow(qtw.QMainWindow):
 
     def stopCaptions(self):
         self.areCaptionsContinuing = False
+        self.captionTimer.stop()
+
 
     def time_str_to_ms(self, time_str):
         hours, minutes, seconds_ms = time_str.split(':')
