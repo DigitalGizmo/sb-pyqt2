@@ -147,9 +147,6 @@ class MainWindow(qtw.QMainWindow):
                         # print(f"pin {pin_flag} from model = {self.model.getPinsIn(pin_flag)}")
                         if (not self.awaitingRestart):
 
-
-
-
                             # # Disabling wiggle check
                             # # # If this pin is in, delay before checking
                             # # # to protect against inadvertent wiggle
@@ -171,11 +168,7 @@ class MainWindow(qtw.QMainWindow):
                             #     # This emit will start bounc_timer with 300
                             #     self.plugEventDetected.emit()
 
-
-
-
                             self.plugEventDetected.emit()
-
 
                         else: # awaiting restart
                             print(" ** pin activity while awaiting restart")
@@ -196,6 +189,7 @@ class MainWindow(qtw.QMainWindow):
         self.pinFlag = 15
         self.pinToBlink = 0
         self.awaitingRestart = False
+        self.captionIndex = 0
 
         # Set to input - later will get intrrupt as well
         for pinIndex in range(0, 16):
@@ -213,6 +207,8 @@ class MainWindow(qtw.QMainWindow):
             self.blinkTimer.stop()            
         if self.wiggleTimer.isActive():
             self.wiggleTimer.stop()  
+        if self.captionTimer.isActive():
+            self.captionTimer.stop()  
 
         # self.setLED(10, True)          
         # self.setLED(11, True)          
@@ -230,15 +226,9 @@ class MainWindow(qtw.QMainWindow):
             # Model uses signals for LED, text and pinsIn to set here
             self.plugInToHandle.emit(self.pinFlag)
         else: # pin flag True, still, or again, high
-            # Resume here - how do we get here??
-
             # print(f"  ** got to pin disconnected in continueCheckPin")
 
-
             # was this a legit unplug?
-            # if (self.pinsIn[self.pinFlag]): # was plugged in
-
-            # if (self.model.getPinsIn(self.pinFlag)):
             if (self.model.getIsPinIn(self.pinFlag)):
                 # print(f"Pin {self.pinFlag} has been disconnected \n")
 
@@ -249,7 +239,6 @@ class MainWindow(qtw.QMainWindow):
                 # (diff in shaft is gone), so rely on pinsIn info
                 self.unPlugToHandle.emit(self.pinFlag) # , self.whichLinePlugging
                 # Model handleUnPlug will set pinsIn false for this on
-
             else:
                 print(" ** got to pin true (changed to high), but not pin in")
         
@@ -325,12 +314,10 @@ class MainWindow(qtw.QMainWindow):
         self.areCaptionsContinuing = False
         self.captionTimer.stop()
 
-
     def time_str_to_ms(self, time_str):
         hours, minutes, seconds_ms = time_str.split(':')
         seconds, milliseconds = seconds_ms.split(',')
         return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
-
 
     # Mostly from ChatGPT
     def displayCaptions(self, fileType, file_name):
@@ -338,42 +325,6 @@ class MainWindow(qtw.QMainWindow):
             self.captions = f.read().split('\n\n')
         self.areCaptionsContinuing = True
         self.captionIndex = 0
-
-        # reset timer
-
-        # def time_str_to_ms(time_str):
-        #     hours, minutes, seconds_ms = time_str.split(':')
-        #     seconds, milliseconds = seconds_ms.split(',')
-        #     return int(hours) * 3600000 + int(minutes) * 60000 + int(seconds) * 1000 + int(milliseconds)
-
-        # def display_next_caption():
-        #     # print('got to display_next_caption')
-        #     nonlocal self
-        #     if self.caption_index < len(captions):
-        #         caption = captions[self.caption_index]
-        #         # print(f'full entry: {caption}')
-        #         if '-->' in caption:
-        #             number, time, text = caption.split('\n', 2)
-        #             print(f'#: {number} time: {time}, text: {text}')
-
-        #             # Stop if unplugged
-        #             if (self.areCaptionsContinuing):
-        #                 self.displayText(text)
-
-        #             # Proccess time
-        #             times = time.split(' --> ')
-        #             # print(f'times[0]: {times[0]}')
-        #             start_time_ms = self.time_str_to_ms(times[0])
-        #             end_time_ms = self.time_str_to_ms(times[1])
-        #             duration_ms = end_time_ms - start_time_ms
-
-        #             if (self.areCaptionsContinuing):
-
-        #                 qtc.QTimer.singleShot(duration_ms, display_next_caption)
-
-        #                 # self.captionTimer(duration_ms, display_next_caption)
-
-        #         self.caption_index += 1
 
         self.display_next_caption()
 
@@ -385,28 +336,19 @@ class MainWindow(qtw.QMainWindow):
             # print(f'full entry: {caption}')
             if '-->' in caption:
                 number, time, text = caption.split('\n', 2)
-                print(f'#: {number} time: {time}, text: {text}')
-
+                # print(f'#: {number} time: {time}, text: {text}')
                 # Stop if unplugged
                 if (self.areCaptionsContinuing):
                     self.displayText(text)
-
                 # Proccess time
                 times = time.split(' --> ')
                 # print(f'times[0]: {times[0]}')
                 start_time_ms = self.time_str_to_ms(times[0])
                 end_time_ms = self.time_str_to_ms(times[1])
                 duration_ms = end_time_ms - start_time_ms
-
                 if (self.areCaptionsContinuing):
-
-                    # qtc.QTimer.singleShot(duration_ms, self.display_next_caption(captions, caption_index + 1))
-
                     self.captionTimer.start(duration_ms)
-
-
             self.captionIndex += 1
-
 
 app = qtw.QApplication([])
 
