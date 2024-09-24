@@ -74,7 +74,7 @@ class Model(qtc.QObject):
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         
-        self.currConvo = 8
+        self.currConvo = 0
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -120,9 +120,6 @@ class Model(qtc.QObject):
         self.tonePlayer.stop()
         # self.vlcPlayers[0].stop()
         self.vlcPlayer.stop()
-    # remove
-    # def setPinInLine(self, pinIdx, lineIdx):
-    #     self.pinsInLine[pinIdx] = lineIdx
 
     def setPinIn(self, pinIdx, value):
         self.pinsIn[pinIdx] = value
@@ -306,10 +303,8 @@ class Model(qtc.QObject):
     def setTimeToNext(self, timeToWait):
         self.callInitTimer.start(timeToWait)        
 
-    def setTimeReCall(self, _currConvo): # , lineIdx
+    def setTimeReCall(self, _currConvo): 
         print("got to setTimeReCall")
-        # Hack: set reCallLine globally bcz I can't send params thru timer
-        # self.reCallLine = lineIdx
         # currConvo is already global
         self.reconnectTimer.start(1000)
         # recconectTimer will call reCall
@@ -320,13 +315,10 @@ class Model(qtc.QObject):
         self.playHello(self.currConvo) #, self.reCallLine
         # calling playHello direclty with callback would send event param
 
-    # def handlePlugIn(self, pluggedIdxInfo):
     def handlePlugIn(self, personIdx):
         """triggered by control.py
         """
-        # personIdx = pluggedIdxInfo['personIdx']
-        # lineIdx = pluggedIdxInfo['lineIdx']
-        lineIdx = 0
+        # lineIdx = 0
 
         print(f' - Start handlePlugIn, personIdx: {personIdx}'
               f' is caller plugged: {self.phoneLine["caller"]["isPlugged"]}')
@@ -340,7 +332,6 @@ class Model(qtc.QObject):
                 # Turn this LED on
                 self.setLEDSignal.emit(personIdx, True)
                 # Set this person's jack to plugged
-                # self.setPinInLine(personIdx, lineIdx)
                 self.setPinIn(personIdx, True)
 
                 # Set this line as having caller plugged
@@ -348,8 +339,10 @@ class Model(qtc.QObject):
                 # Set identity of caller on this line
                 self.phoneLine["caller"]["index"] = personIdx;				
                 # print(f' - Just set caller {self.phoneLine["caller"]["index"]} to True')
+
                 # Set this line in use only we have gotten this success
                 # self.whichLineInUse = lineIdx
+
                 # See software app for extended debug message here
                 # Stop Buzzer. 
                 self.buzzPlayer.stop()
@@ -384,9 +377,8 @@ class Model(qtc.QObject):
                     else:
                         print('   We should not get here');
 
-                #     self.playHello(self.currConvo, lineIdx)
                 else: # Regular, just play incoming Hello/Request
-                    self.playHello(self.currConvo) # , lineIdx
+                    self.playHello(self.currConvo) 
                 
                 # Set prev for use in next call. Here??
                 # print(f"setting prev line in use from {p}")
@@ -400,16 +392,16 @@ class Model(qtc.QObject):
         #********/
         else: # caller is plugged
 			# But first, make sure this is the line in use
+
             # print(f"Which line in use: {lineIdx}")
             # if (lineIdx == self.whichLineInUse): # This is the line in use
             # Whether or not this is correct callee -- turn LED on.
             self.setLEDSignal.emit(personIdx, True)
             # Set pinsIn True
-            # self.setPinInLine(personIdx, lineIdx)
             self.setPinIn(personIdx, True)
             # Stop the hello operator track,  whether this is the correct
             # callee or not
-            self.vlcPlayer.stop() # vlcPlayers[lineIdx]
+            self.vlcPlayer.stop()
             # Also stop captions
             self.stopCaptionSignal.emit()
 
@@ -422,6 +414,7 @@ class Model(qtc.QObject):
                 self.phoneLine["isEngaged"] = True
                 # Also set line callee plugged
                 self.phoneLine["callee"]["isPlugged"] = True
+
                 # # Silence incoming Hello/Request, if necessary
                 # self.vlcPlayers[lineIdx].stop()
                 self.playConvo(self.currConvo)
@@ -430,12 +423,11 @@ class Model(qtc.QObject):
                 print("wrong number")
                 self.phoneLine["unPlugStatus"] = self.WRONG_NUM_IN_PROGRESS
 
-                self.playWrongNum(personIdx) # , lineIdx
+                self.playWrongNum(personIdx) 
         
 
-    def handleUnPlug(self, personIdx): # , lineIdx
+    def handleUnPlug(self, personIdx): 
         """ triggered by control.py
-        Need lineIdx!!
         """
         print( f" - Index {personIdx} Unplugged with line status of: {self.phoneLine['unPlugStatus']}\n"
                f"     while line isEngaged = {self.phoneLine['isEngaged']}"
@@ -514,7 +506,7 @@ class Model(qtc.QObject):
                 if (personIdx == self.phoneLine["caller"]["index"]):
                     print("     caller unplugged")
                     stopTime = self.vlcPlayer.get_time()
-                    self.vlcPlayer.stop() # vlcPlayers[lineIdx]
+                    self.vlcPlayer.stop() 
                     #  LED handled by either condition below
                     # If this is a hello only call # And if we're close enough to the end
                     if ((self.currConvo == 3 or  self.currConvo == 8) and
@@ -528,7 +520,7 @@ class Model(qtc.QObject):
                 elif (self.phoneLine["unPlugStatus"] == self.WRONG_NUM_IN_PROGRESS):
                     # Unplugging wrong num
                     print(f'  Unplug on wrong number, personIdx: {personIdx}')
-                    self.vlcPlayer.stop() # vlcPlayers[lineIdx]
+                    self.vlcPlayer.stop() 
                     # Cover for before personidx defined
                     if (personIdx < 99):
                         self.setLEDSignal.emit(personIdx, False)
@@ -597,8 +589,6 @@ class Model(qtc.QObject):
         self.phoneLine["unPlugStatus"] = self.NO_UNPLUG_STATUS
         # self.prevLineInUse = -1
         # Turn off the LEDs
-        # persons[phoneLines[lineIdx].caller.index].ledState = LED_OFF;
-        # self.ledEvent.emit(personIdx, False)
         self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
         # Can't turn off callee led if callee index hasn't been defined
         # print(f'About to try to turn off .callee.index: {self.phoneLines[lineIdx]["callee"]["index"]}')
