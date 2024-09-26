@@ -167,7 +167,7 @@ class MainWindow(qtw.QMainWindow):
                         # Starts bounceTimer which call continuePinCheck
 
                 else:
-                    print("got to interupt 12 or greater")
+                    print(" * got to interupt 12 or greater")
                     if (pin_flag == 13 and self.pins[13].value == False):
                         # if (self.pins[13].value == False):
                         self.startPressed.emit() # Calls startReset
@@ -177,6 +177,7 @@ class MainWindow(qtw.QMainWindow):
         GPIO.add_event_detect(interrupt, GPIO.BOTH, callback=checkPin, bouncetime=50)
 
     def reset(self):
+        self.mcp.clear_ints()
         self.label.setText("Press the Start button to begin!")
         self.just_checked = False
         self.pinFlag = 15
@@ -203,8 +204,9 @@ class MainWindow(qtw.QMainWindow):
         if self.captionTimer.isActive():
             self.captionTimer.stop()  
 
-        # self.setLED(10, True)          
-        # self.setLED(11, True)          
+        # self.setLED(0, True)          
+        # self.setLED(1, True)          
+        # self.setLED(2, True)          
 
     def continueCheckPin(self):
         # Not able to send param through timer, so pinFlag has been set globaly
@@ -213,7 +215,7 @@ class MainWindow(qtw.QMainWindow):
 
         if (self.awaitingRestart):
             # do nothing - awaiting press of start button
-            print('awaiting restart')
+            print(' * awaiting restart')
         else:
             # Regular pin out
             if (self.pins[self.pinFlag].value == False): 
@@ -301,7 +303,7 @@ class MainWindow(qtw.QMainWindow):
         return anyPinsIn
 
     def startReset(self):
-        print("reseting, starting")
+        print(" * resetting, starting")
         self.awaitingRestart = True
         self.stopCaptions()
         self.setLEDsOff()

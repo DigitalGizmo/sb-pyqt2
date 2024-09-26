@@ -78,7 +78,6 @@ class Model(qtc.QObject):
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
-        # self.prevLineInUse = -1
 
         self.incrementJustCalled = False
         # self.reCallLine = 0 # Workaround timer not having params
@@ -88,8 +87,7 @@ class Model(qtc.QObject):
 
         self.NO_UNPLUG_STATUS = 0
         self.WRONG_NUM_IN_PROGRESS = 1
-        # self.AWAITING_INTERRUPT = 1
-        # self.DURING_INTERRUPT_SILENCE = 2
+        self.OP_ONLY_IN_PROGRESS = 2
         self.REPLUG_IN_PROGRESS = 3
         self.CALLER_UNPLUGGED = 5
 
@@ -167,9 +165,12 @@ class Model(qtc.QObject):
         # For convo idxs 3 and 7 there is no full convo, so end after hello.
         # Attach event before playing
         if (_currConvo == 3 or  _currConvo == 8):
-            print(f" -- got to currConv = 3 or 8 ")
+            print(f" -- got to currConv = 3 or 8 -- Operator only ")
+            # Set call status to operator only
+            self.phoneLine["unPlugStatus"] = self.OP_ONLY_IN_PROGRESS
             self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
-                self.endOperatorOnlyHello) #  _currConvo, ,lineIndex
+                self.endOperatorOnlyHello) #  _currConvo, 
+
         # Proceed with playing -- event may or may not be attached            
         self.vlcPlayer.play()
         # Send msg to screen
@@ -235,7 +236,7 @@ class Model(qtc.QObject):
 
         self.displayTextSignal.emit(persons[pluggedPersonIdx]["wrongNumText"])
 
-        print(f"-- PlayWrongNun person {pluggedPersonIdx}")
+        print(f"  -- Play Wrong Num person {pluggedPersonIdx}")
         # Set callback for wrongNUm track finish
 
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
@@ -261,7 +262,7 @@ class Model(qtc.QObject):
 
     # Reply from caller saying who caller really wants
     def playRequestCorrect(self):
-        print(f"got to playRequestCorrect, currConvo: {self.currConvo}")
+        print(f"  - got to playRequestCorrect, currConvo: {self.currConvo}")
         # Transcript for correction
         self.displayTextSignal.emit(conversations[self.currConvo]["retryAfterWrongText"])
 
@@ -391,40 +392,48 @@ class Model(qtc.QObject):
         # Other end of the line -- caller is plugged, so this must be the callee
         #********/
         else: # caller is plugged
-			# But first, make sure this is the line in use
+			# Ignore the following if this is an operator-only call in progress
+            print(' -- else caller plugged. unPlugStatus: ' + str(self.phoneLine["unPlugStatus"]))
+            if (not self.phoneLine["unPlugStatus"] == self.OP_ONLY_IN_PROGRESS):
 
-            # print(f"Which line in use: {lineIdx}")
-            # if (lineIdx == self.whichLineInUse): # This is the line in use
-            # Whether or not this is correct callee -- turn LED on.
-            self.setLEDSignal.emit(personIdx, True)
-            # Set pinsIn True
-            self.setPinIn(personIdx, True)
-            # Stop the hello operator track,  whether this is the correct
-            # callee or not
-            self.vlcPlayer.stop()
-            # Also stop captions
-            self.stopCaptionSignal.emit()
+            
+
+                # print(f"Which line in use: {lineIdx}")
+                # if (lineIdx == self.whichLineInUse): # This is the line in use
+                # Whether or not this is correct callee -- turn LED on.
+                self.setLEDSignal.emit(personIdx, True)
+                # Set pinsIn True
+                self.setPinIn(personIdx, True)
+                # Stop the hello operator track,  whether this is the correct
+                # callee or not
+                self.vlcPlayer.stop()
+                # Also stop captions
+                self.stopCaptionSignal.emit()
 
 
-            # Set callee -- used by unPlug even if it's the wrong number
-            self.phoneLine["callee"]["index"] = personIdx
-            if (personIdx == self.currCalleeIndex): # Correct callee
-                print(f" - Plugged into correct callee, idx: {personIdx}")
-                # Set this line as engaged
-                self.phoneLine["isEngaged"] = True
-                # Also set line callee plugged
-                self.phoneLine["callee"]["isPlugged"] = True
+                # Set callee -- used by unPlug even if it's the wrong number
+                self.phoneLine["callee"]["index"] = personIdx
+                if (personIdx == self.currCalleeIndex): # Correct callee
+                    print(f" - Plugged into correct callee, idx: {personIdx}")
+                    # Set this line as engaged
+                    self.phoneLine["isEngaged"] = True
+                    # Also set line callee plugged
+                    self.phoneLine["callee"]["isPlugged"] = True
 
-                # # Silence incoming Hello/Request, if necessary
-                # self.vlcPlayers[lineIdx].stop()
-                self.playConvo(self.currConvo)
+                    # # Silence incoming Hello/Request, if necessary
+                    # self.vlcPlayers[lineIdx].stop()
+                    self.playConvo(self.currConvo)
 
-            else: # Wrong number
-                print("wrong number")
-                self.phoneLine["unPlugStatus"] = self.WRONG_NUM_IN_PROGRESS
+                else: # Wrong number
+                    print("wrong number")
+                    self.phoneLine["unPlugStatus"] = self.WRONG_NUM_IN_PROGRESS
 
-                self.playWrongNum(personIdx) 
+                    self.playWrongNum(personIdx) 
+
+            else:
         
+                print("got to Tressa erroneous plug-in")
+
 
     def handleUnPlug(self, personIdx): 
         """ triggered by control.py
@@ -599,12 +608,12 @@ class Model(qtc.QObject):
     def handleStart(self):
         """Just for startup
         """
-        print("got to model.handleStart")
+        print(" - got to model.handleStart")
         self.reset()
         self.callInitTimer.start(2000)
 
     def restartOnTimeout(self, event):
-        print('auto starting reset')
+        print(' - auto starting reset')
         self.buzzEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
         self.blinkerStop.emit()
         self.startResetSignal.emit()

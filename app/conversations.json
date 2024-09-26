@@ -28,6 +28,7 @@
     "helloFile": "5-Tom_Calls_Operator_1",
     "convoFile": "6-Tom_Calls_Burns",
     "retryAfterWrongFile": "Tom_WrongNumber_FireStation",
+    "retryAfterWrongText": "No, that's not who I want, I want the fire station.",    
     "okTimeHello": 3000,
     "okTimeConvo": 5800
   },  
