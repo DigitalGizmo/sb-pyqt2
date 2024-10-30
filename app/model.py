@@ -29,6 +29,7 @@ class Model(qtc.QObject):
     # Need to avoid thread conflicts
     setTimeToNextSignal = qtc.pyqtSignal(int)
     playRequestCorrectSignal = qtc.pyqtSignal()
+    setTimeToEndSignal = qtc.pyqtSignal()
 
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
@@ -54,15 +55,14 @@ class Model(qtc.QObject):
         self.reconnectTimer = qtc.QTimer()
         self.reconnectTimer.setSingleShot(True)
         self.reconnectTimer.timeout.connect(self.reCall)
-        # reconnectTimer = undefined
-        # audioCaption = " "
 
-        self.silencedCalTimer = qtc.QTimer()
-        self.silencedCalTimer.setSingleShot(True)
-        self.silencedCalTimer.timeout.connect(self.silencedCallEnded)
+        self.resetEndTimer = qtc.QTimer()
+        self.resetEndTimer.setSingleShot(True)
+        self.resetEndTimer.timeout.connect(self.startResetSignal.emit())
 
         self.playRequestCorrectSignal.connect(self.playRequestCorrect)
         self.setTimeToNextSignal.connect(self.setTimeToNext)
+        self.setTimeToEndSignal.connect(self.startEndTimer)
 
         self.reset()
 
@@ -74,7 +74,7 @@ class Model(qtc.QObject):
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         
-        self.currConvo = 0
+        self.currConvo = 8
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
@@ -83,7 +83,6 @@ class Model(qtc.QObject):
         # self.reCallLine = 0 # Workaround timer not having params
         self.silencedCallLine = 0 # Workaround timer not having params
         # self.requestCorrectLine = 0 # Workaround timer not having params
-        # self.interruptingCallInHasBeenInitiated = False
 
         self.NO_UNPLUG_STATUS = 0
         self.WRONG_NUM_IN_PROGRESS = 1
@@ -106,8 +105,8 @@ class Model(qtc.QObject):
             self.callInitTimer.stop()
         if self.reconnectTimer.isActive():
             self.reconnectTimer.stop()
-        if self.silencedCalTimer.isActive():
-            self.silencedCalTimer.stop()
+        # if self.silencedCalTimer.isActive():
+        #     self.silencedCalTimer.stop()
 
 
     def stopAllAudio(self):
@@ -178,19 +177,20 @@ class Model(qtc.QObject):
 
 
     def endOperatorOnlyHello(self, event): # , lineIndex
-            print("  - About to detach vlcEvent in endOperatorOnlyHello")
+        print("  - About to detach vlcEvent in endOperatorOnlyHello")
 
-            if ( event != None):
-                self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
+        if ( event != None):
+            self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
 
-            #  supress further callbacks self.supressCallback
-            # Don't know what this did in software proto
-            # setHelloOnlyCompleted(lineIndex)
-            self.clearTheLine() # lineIndex
-            print(f" - Hello-only ended.  Bump currConvo from {self.currConvo}")
-            self.currConvo += 1
-            # Timers can't be started from another thread
-            self.setTimeToNextSignal.emit(1000)
+        #  supress further callbacks self.supressCallback
+        # Don't know what this did in software proto
+        # setHelloOnlyCompleted(lineIndex)
+        self.clearTheLine() # lineIndex
+        print(f" - Hello-only ended.  Bump currConvo from {self.currConvo}")
+        self.currConvo += 1
+        # Timers can't be started from another thread
+        # If convo index is 8 we'll restart in 
+        self.setTimeToNextSignal.emit(1000)
 
     def playConvo(self, currConvo): # , lineIndex
         """
@@ -286,19 +286,18 @@ class Model(qtc.QObject):
 
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             "FinishedActivity.mp3")
-        self.vlcPlayer.set_media(media)
         self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
+
+        self.vlcPlayer.set_media(media)
+
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
+            self.restartOnEndTimeout) 
 
         self.vlcPlayer.play()
 
-    # def supressCallback(self, event):
-    #     print("     supress video end callback")
-
-    # def vlcEventdetached(self, event):
-    #     print(f"     event detached: {event}")
-
     def setTimeToNext(self, timeToWait):
-        self.callInitTimer.start(timeToWait)        
+        self.callInitTimer.start(timeToWait)   
+             
 
     def setTimeReCall(self, _currConvo): 
         print("got to setTimeReCall")
@@ -575,17 +574,6 @@ class Model(qtc.QObject):
         # Reset volume -- in this line was silenced by interrupting call
         # self.vlcPlayers[self.prevLineInUse].audio_set_volume(100)
 
-    def silencedCallEnded(self):
-        print("-- Silenced call ended")
-        self.stopSilentCall(self.silencedCallLine)
-
-    def stopSilentCall(self, lineIndex):
-        print(f'  Trying to stop silent call on line: {lineIndex}')
-        self.phoneLines[lineIndex]["unPlugStatus"] = self.NO_UNPLUG_STATUS
-        # Clear the line settings
-        self.clearTheLine()
-
-
     def clearTheLine(self):
         # Clear the line settings
         self.phoneLine["caller"]["isPlugged"] = False
@@ -613,3 +601,20 @@ class Model(qtc.QObject):
         self.buzzEvents.event_detach(vlc.EventType.MediaPlayerEndReached)
         self.blinkerStop.emit()
         self.startResetSignal.emit()
+
+    def restartOnEndTimeout(self, event):
+        print(' - Starting reset after End')
+        self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
+
+        # Can't call endTimer directly, so signal
+        # This signal will call startEndTimer
+        self.setTimeToEndSignal.emit()
+        # Couldn't use setTimeToNextSignal because that's hard-wired to starting calls
+
+    def startEndTimer(self):
+        # Timer will call self.startResetSignal.emit()
+        self.resetEndTimer.start(2000)
+
+    # def resetAtEnd(self):
+    #     # Maybe this could go directly in callback?
+    #     self.startResetSignal.emit()
