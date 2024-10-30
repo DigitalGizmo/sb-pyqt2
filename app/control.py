@@ -21,7 +21,7 @@ class MainWindow(qtw.QMainWindow):
     plugEventDetected = qtc.pyqtSignal()
     plugInToHandle = qtc.pyqtSignal(int)
     unPlugToHandle = qtc.pyqtSignal(int)
-    wiggleDetected = qtc.pyqtSignal()
+    # wiggleDetected = qtc.pyqtSignal()
 
     def __init__(self):
         # self.pygame.init()
@@ -60,10 +60,10 @@ class MainWindow(qtw.QMainWindow):
         self.areCaptionsContinuing = True
 
         # Supress interrupt when plug is just wiggled (disabled)
-        self.wiggleDetected.connect(lambda: self.wiggleTimer.start(80))
-        self.wiggleTimer=qtc.QTimer()
-        self.wiggleTimer.setSingleShot(True)
-        self.wiggleTimer.timeout.connect(self.checkWiggle)
+        # self.wiggleDetected.connect(lambda: self.wiggleTimer.start(80))
+        # self.wiggleTimer=qtc.QTimer()
+        # self.wiggleTimer.setSingleShot(True)
+        # self.wiggleTimer.timeout.connect(self.checkWiggle)
 
         # Self (control) for gpio related, self.model for audio
         self.startPressed.connect(self.startReset)
@@ -199,8 +199,8 @@ class MainWindow(qtw.QMainWindow):
             self.bounceTimer.stop()
         if self.blinkTimer.isActive():
             self.blinkTimer.stop()            
-        if self.wiggleTimer.isActive():
-            self.wiggleTimer.stop()  
+        # if self.wiggleTimer.isActive():
+            # self.wiggleTimer.stop()  
         if self.captionTimer.isActive():
             self.captionTimer.stop()  
 
@@ -258,19 +258,19 @@ class MainWindow(qtw.QMainWindow):
         self.mcp.clear_ints()  # This seems to keep things fresh
 
 
-    def checkWiggle(self):
-        print(" * got to checkWiggle")
-        # self.wiggleTimer.stop() -- now singleShot
-        # Check whether the pin is still grounded aka False
-        # if no longer grounded, proceed with event detection
-        if (not self.pins[self.pinFlag].value == False):
-            # The pin is no longer in
-            self.just_checked = True
-            self.plugEventDetected.emit()
-        else: 
-            # still grounded -- do nothing
-            # pin has been removed during pause
-            print(f'in wiggle-- not supposed to get here - grounded')
+    # def checkWiggle(self):
+    #     print(" * got to checkWiggle")
+    #     # self.wiggleTimer.stop() -- now singleShot
+    #     # Check whether the pin is still grounded aka False
+    #     # if no longer grounded, proceed with event detection
+    #     if (not self.pins[self.pinFlag].value == False):
+    #         # The pin is no longer in
+    #         self.just_checked = True
+    #         self.plugEventDetected.emit()
+    #     else: 
+    #         # still grounded -- do nothing
+    #         # pin has been removed during pause
+    #         print(f'in wiggle-- not supposed to get here - grounded')
 
     def displayText(self, msg):
         self.label.setText(msg)        

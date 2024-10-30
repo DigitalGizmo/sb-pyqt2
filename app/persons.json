@@ -76,8 +76,8 @@
       "name": "Troy Bacon",
       "number": "82",
       "ledState": 0,
-      "wrongNumFile": "TroyBacon_WrongNumber_Callee",
-      "wrongNumText": "Hello, it's Troy Bacon. Who's calling?",
+      "wrongNumFile": "LucyBacon_WrongNumber_Callee",
+      "wrongNumText": "Hello, it's Lucy Bacon. Who's calling?",
       "isPluggedJack": false 
     },
     { "indexLabel":  "6 > 9",

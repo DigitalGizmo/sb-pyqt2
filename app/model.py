@@ -287,11 +287,7 @@ class Model(qtc.QObject):
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             "FinishedActivity.mp3")
         self.vlcPlayer.set_media(media)
-
         self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
-
-
-
 
         self.vlcPlayer.play()
 
