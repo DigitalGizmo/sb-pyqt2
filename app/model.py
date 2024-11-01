@@ -58,7 +58,8 @@ class Model(qtc.QObject):
 
         self.resetEndTimer = qtc.QTimer()
         self.resetEndTimer.setSingleShot(True)
-        self.resetEndTimer.timeout.connect(self.startResetSignal.emit())
+        # self.resetEndTimer.timeout.connect(self.startResetSignal.emit())
+        self.resetEndTimer.timeout.connect(self.resetAtEnd)
 
         self.playRequestCorrectSignal.connect(self.playRequestCorrect)
         self.setTimeToNextSignal.connect(self.setTimeToNext)
@@ -98,7 +99,7 @@ class Model(qtc.QObject):
                 # "audioTrack": vlc.MediaPlayer("/home/piswitch/Apps/sb-audio/1-Charlie_Operator.mp3")
             }
 
-        self.displayTextSignal.emit("Keep your ears open for incoming calls!")
+        # self.displayTextSignal.emit("Keep your ears open for incoming calls!")
 
     def stopTimers(self):
         if self.callInitTimer.isActive():
@@ -594,7 +595,20 @@ class Model(qtc.QObject):
         """
         print(" - got to model.handleStart")
         self.reset()
-        self.callInitTimer.start(2000)
+
+
+        print(f" -- Playing Welcome")
+        # Set callback for welcome track finish
+        self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
+            self.afterWelcome)  
+        media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/Welcome.mp3")
+        self.vlcPlayer.set_media(media)
+        self.vlcPlayer.play()
+        # self.displayCaptionSignal.emit('convo', conversations[_currConvo]["convoFile"])
+        self.displayTextSignal.emit("Welcome to the switchboard game. \nIt's your turn to be a switchboard operator! \nHere comes the first call.")
+
+    def afterWelcome(self, event):
+        self.setTimeToNextSignal.emit(1000) # calls setTimeToNext
 
     def restartOnTimeout(self, event):
         print(' - auto starting reset')
@@ -615,6 +629,6 @@ class Model(qtc.QObject):
         # Timer will call self.startResetSignal.emit()
         self.resetEndTimer.start(2000)
 
-    # def resetAtEnd(self):
-    #     # Maybe this could go directly in callback?
-    #     self.startResetSignal.emit()
+    def resetAtEnd(self):
+        # Maybe this could go directly in callback?
+        self.startResetSignal.emit()

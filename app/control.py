@@ -313,7 +313,7 @@ class MainWindow(qtw.QMainWindow):
         # print(f"in reset, anyPinsIn =  {_anyPinsIn}")
         # if (_anyPinsIn):
         if (self.getAnyPinsIn()):
-            self.label.setText("Remove phone plugs and press Start again")
+            self.label.setText("Remove phone plugs and when you're ready, press Start")
         else:
             self.reset()
             self.model.handleStart()
