@@ -4,8 +4,8 @@ Mina:  Fire department.
 
 2
 00:00:04,990 --> 00:00:13,070 
-Mina:  Hello, please? Please connect me to the fire department.
+Mina:  Hello, please? Please connect me to the fire station.
 
 3
 00:00:13,070  --> 00:00:17,893
-Mina:  Hello, operator, are you there? The fire department, please.
+Mina:  Hello, operator, are you there? The fire station, please.

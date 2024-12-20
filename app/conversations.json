@@ -6,7 +6,7 @@
     "helloFile": "1-Charlie_Operator",
     "convoFile": "2-Charlie_Calls_Olive",
     "retryAfterWrongFile": "Charlie_WrongNumber_Olive",
-    "retryAfterWrongText": "No, that's not who I want, I want to speak<br/> to Olive at the Power's residence, number 72",
+    "retryAfterWrongText": "No, that's not who I want, I want to speak<br/> to Olive at the Powers' residence, number 72.",
     "okTimeHello": 3000,
     "okTimeConvo": 11400
   },  
@@ -17,7 +17,7 @@
     "helloFile": "3-Mina_Calls_Operator",
     "convoFile": "4-Mina_Calls_Burns",
     "retryAfterWrongFile": "Mina_WrongNumber_FireStation",
-    "retryAfterWrongText": "No, that's not who I want, get me the  <br/> Fire Department please.",
+    "retryAfterWrongText": "No, that's not who I want, get me the  <br/> Fire Station, please. Number 111.",
     "okTimeHello": 3000,
     "okTimeConvo": 7450
   },  
@@ -28,7 +28,7 @@
     "helloFile": "5-Tom_Calls_Operator_1",
     "convoFile": "6-Tom_Calls_Burns",
     "retryAfterWrongFile": "Tom_WrongNumber_FireStation",
-    "retryAfterWrongText": "No, that's not who I want, I want the fire station.",    
+    "retryAfterWrongText": "No, that's not who I want, I want the Fire Station. Number 111.",    
     "okTimeHello": 3000,
     "okTimeConvo": 5800
   },  
@@ -50,7 +50,7 @@
     "helloFile": "8-Emma_Calls_Operator",
     "convoFile": "9-Emma_Calls_Olive",
     "retryAfterWrongFile": "Emma_WrongNumber_Caller",
-    "retryAfterWrongText": "No, that's not who I want, please connect me <br/> to the Power's residence, number 72",
+    "retryAfterWrongText": "No, that's not who I want, please connect me <br/> to the Powers' residence, number 72.",
     "okTimeHello": 3000,
     "okTimeConvo": 12630
   },  
@@ -61,7 +61,7 @@
     "helloFile": "10-Tom_Calls_Operator_2",
     "convoFile": "11-Tom_Calls_Charlie",
     "retryAfterWrongFile": "Tom_WrongNumber_Dr",
-    "retryAfterWrongText": "No, that's not who I want, connect me to Dr. Freeman.",
+    "retryAfterWrongText": "No, that's not who I want, connect me with Dr. Freeman. Number 56.",
     "okTimeHello": 3000,
     "okTimeConvo": 5760
   },  
@@ -72,7 +72,7 @@
     "helloFile": "11a-Cleo_Calls_Operator",
     "convoFile": "11b-Cleo_Calls_Mina",
     "retryAfterWrongFile": "Cleo_WrongNumber_Caller",
-    "retryAfterWrongText": "No, that's not who I want, get me Mina Newell please.",
+    "retryAfterWrongText": "No, that's not who I want, get me Mina Newell please. Number 44.",
     "okTimeHello": 3000,
     "okTimeConvo": 10200
   },  
@@ -83,7 +83,7 @@
     "helloFile": "12-Tom_Calls_Operator_3",
     "convoFile": "13-Tom_Calls_Mrs.White",
     "retryAfterWrongFile": "Tom_WrongNumber_MrsWhite",
-    "retryAfterWrongText": "No, that's not Ms. White, I need to speak to Ms. White.",
+    "retryAfterWrongText": "No, that's not Mrs. White, I need to speak to Mrs. White. Number 41.",
     "okTimeHello": 3000,
     "okTimeConvo": 15200
   },  

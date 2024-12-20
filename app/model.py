@@ -75,7 +75,7 @@ class Model(qtc.QObject):
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
         
-        self.currConvo = 8
+        self.currConvo = 0
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
