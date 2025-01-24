@@ -24,6 +24,7 @@ class Model(qtc.QObject):
     startResetSignal = qtc.pyqtSignal()
     # Doesn't seem to be used
     checkPinsInEvent = qtc.pyqtSignal() 
+    checkDualUnplugSignal = qtc.pyqtSignal()
     
     # The following signals are local
     # Need to avoid thread conflicts
@@ -65,6 +66,12 @@ class Model(qtc.QObject):
         self.setTimeToNextSignal.connect(self.setTimeToNext)
         self.setTimeToEndSignal.connect(self.startEndTimer)
 
+        self.checkDualUnplugSignal.connect(self.setDualUnplugTimer)
+
+        self.dualUnplugTimer = qtc.QTimer()
+        self.dualUnplugTimer.setSingleShot(True)
+        self.dualUnplugTimer.timeout.connect(self.checkDualUnplug)
+
         self.reset()
 
     def reset(self):
@@ -79,6 +86,8 @@ class Model(qtc.QObject):
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
+        self.currStopTime = 0
+        self.currPersonIdx = 0
 
         self.incrementJustCalled = False
         # self.reCallLine = 0 # Workaround timer not having params
@@ -445,7 +454,7 @@ class Model(qtc.QObject):
             print(f'  - Unplugging a call in progress person id: {persons[personIdx]["name"]} ' )
             # Get stop time
             stopTime = self.vlcPlayer.get_time()
-            print(f'  -- stop time: {stopTime}')
+            # print(f'  -- stop time: {stopTime}')
 
             # Stop the audio
             self.vlcPlayer.stop()
@@ -454,44 +463,21 @@ class Model(qtc.QObject):
             # Clear Transcript 
             self.displayTextSignal.emit("Call disconnected..")
 
-            # callee just unplugged
-            if (self.phoneLine["callee"]["index"] == personIdx):  
-                print('   Unplugging callee')
-                # Turn off callee LED
-                self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
+            # Check to see if Both were unplugged
+            # Maybe look at pinsIn -- if only one was unplugged then the other 
+            # pin should be in. Be aware of the 150 finishCheck timeer -- 
+            # Do my business here within that time 
+            # And don't forget to check enough time to decide whether to start 
+            # over or continue.
+            # if
 
-                # If Early in call, retry
-                if (stopTime < conversations[self.currConvo]["okTimeConvo"]):
-                    # Restart this answer to cal
-                    # Mark callee unplugged
-                    self.phoneLine["callee"]["isPlugged"] = False
-                    self.phoneLine["isEngaged"] = False
-
-                    # stop captions
-                    self.stopCaptionSignal.emit()
-
-                    # Leave caller plugged in, replay hello
-                    self.setTimeReCall(self.currConvo)
-                else:
-                    # Late in call -- end convo and move on
-                    print(f'  - stopped with time: {stopTime}')
-                    self.setCallCompleted(self)
-
-            # caller unplugged
-            elif (self.phoneLine["caller"]["index"] == personIdx): 
-                print(" Caller just unplugged")
-                self.phoneLine["caller"]["isPlugged"] = False
-                self.phoneLine["isEngaged"] = False
-                # Also
-                self.phoneLine["unPlugStatus"] = self.CALLER_UNPLUGGED
-                # Turn off caller LED
-                self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
-                # In this case timer can be called directly (without signal)
-                # Perhaps because no call is engaged at this point
-                self.setTimeToNext(1000);							
-
-            else: 
-                print('    This should not happen')
+            self.currPersonIdx = personIdx
+            self.currStopTime = stopTime
+            print(' - got to engaged unplug, calling check dual')
+            # Can't call timer directly, so setting temp variables
+            # and starting timer with this signal
+            self.checkDualUnplugSignal.emit()
+            
 
         # ---- Conversation NOT in progress --- 
         else:   
@@ -541,6 +527,59 @@ class Model(qtc.QObject):
         # self.setPinInLine(personIdx, -1)
         self.setPinIn(personIdx, False)
         print(f" - pin {personIdx} is now {self.pinsIn[personIdx]}")
+
+    def setDualUnplugTimer(self):
+        # Timer will call 
+        self.dualUnplugTimer.start(90)
+
+    def checkDualUnplug(self):
+        print(' - got to checkDualUnplug, need to actually check!')
+        # if such & so do somethingelse
+        self.continueSingleEngagedUnplug(self.currPersonIdx, self.currStopTime)
+
+
+    def continueSingleEngagedUnplug(self, personIdx, stopTime):
+        # print(' - got to continue single unplug')
+        # callee just unplugged
+        if (self.phoneLine["callee"]["index"] == personIdx):  
+            print('   Unplugging callee')
+            # Turn off callee LED
+            self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
+
+            # If Early in call, retry
+            if (stopTime < conversations[self.currConvo]["okTimeConvo"]):
+                # Restart this answer to cal
+                # Mark callee unplugged
+                self.phoneLine["callee"]["isPlugged"] = False
+                self.phoneLine["isEngaged"] = False
+
+                # stop captions
+                self.stopCaptionSignal.emit()
+
+                # Leave caller plugged in, replay hello
+                self.setTimeReCall(self.currConvo)
+            else:
+                # Late in call -- end convo and move on
+                print(f'  - stopped with time: {stopTime}')
+                self.setCallCompleted(self)
+
+        # caller unplugged
+        elif (self.phoneLine["caller"]["index"] == personIdx): 
+            print(" Caller just unplugged")
+            self.phoneLine["caller"]["isPlugged"] = False
+            self.phoneLine["isEngaged"] = False
+            # Also
+            self.phoneLine["unPlugStatus"] = self.CALLER_UNPLUGGED
+            # Turn off caller LED
+            self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
+            # In this case timer can be called directly (without signal)
+            # Perhaps because no call is engaged at this point
+            self.setTimeToNext(1000);							
+
+        else: 
+            print('    This should not happen')
+
+
 
 
     def setCallCompleted(self, event=None): #, _currConvo, lineIndex

@@ -217,7 +217,7 @@ class MainWindow(qtw.QMainWindow):
             # do nothing - awaiting press of start button
             print(' * awaiting restart')
         else:
-            # Regular pin out
+            # Plug-in
             if (self.pins[self.pinFlag].value == False): 
                 # grounded by tip, aka connected
                 """
@@ -226,6 +226,7 @@ class MainWindow(qtw.QMainWindow):
                 # Send pin index to model.py as an int 
                 # Model uses signals for LED, text and pinsIn to set here
                 self.plugInToHandle.emit(self.pinFlag)
+            # Unplug
             else: # pin flag True, still, or again, high
                 # aka not connected
                 # print(f"  ** got to pin disconnected in continueCheckPin")
