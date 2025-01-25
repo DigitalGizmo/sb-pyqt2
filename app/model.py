@@ -24,13 +24,14 @@ class Model(qtc.QObject):
     startResetSignal = qtc.pyqtSignal()
     # Doesn't seem to be used
     checkPinsInEvent = qtc.pyqtSignal() 
-    checkDualUnplugSignal = qtc.pyqtSignal()
     
     # The following signals are local
     # Need to avoid thread conflicts
     setTimeToNextSignal = qtc.pyqtSignal(int)
     playRequestCorrectSignal = qtc.pyqtSignal()
     setTimeToEndSignal = qtc.pyqtSignal()
+
+    checkDualUnplugSignal = qtc.pyqtSignal(int)
 
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
@@ -46,6 +47,10 @@ class Model(qtc.QObject):
     vlcInstance = vlc.Instance()
     vlcPlayer = vlcInstance.media_player_new()
     vlcEvent = vlcPlayer.event_manager()
+
+    dualUnplugTimer = qtc.QTimer()
+    dualUnplugTimer.setSingleShot(True)
+    # connect defined in _init_    
 
     def __init__(self):
         super().__init__()
@@ -66,10 +71,7 @@ class Model(qtc.QObject):
         self.setTimeToNextSignal.connect(self.setTimeToNext)
         self.setTimeToEndSignal.connect(self.startEndTimer)
 
-        self.checkDualUnplugSignal.connect(self.setDualUnplugTimer)
-
-        self.dualUnplugTimer = qtc.QTimer()
-        self.dualUnplugTimer.setSingleShot(True)
+        self.checkDualUnplugSignal.connect(self.dualUnplugTimer.start)
         self.dualUnplugTimer.timeout.connect(self.checkDualUnplug)
 
         self.reset()
@@ -476,7 +478,7 @@ class Model(qtc.QObject):
             print(' - got to engaged unplug, calling check dual')
             # Can't call timer directly, so setting temp variables
             # and starting timer with this signal
-            self.checkDualUnplugSignal.emit()
+            self.checkDualUnplugSignal.emit(90)
             
 
         # ---- Conversation NOT in progress --- 
