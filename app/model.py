@@ -28,10 +28,9 @@ class Model(qtc.QObject):
     # The following signals are local
     # Need to avoid thread conflicts
     setTimeToNextSignal = qtc.pyqtSignal(int)
-    playRequestCorrectSignal = qtc.pyqtSignal()
-    setTimeToEndSignal = qtc.pyqtSignal()
-
+    setTimeToEndSignal = qtc.pyqtSignal(int)
     checkDualUnplugSignal = qtc.pyqtSignal(int)
+    playRequestCorrectSignal = qtc.pyqtSignal()
 
     buzzInstace = vlc.Instance()
     buzzPlayer = buzzInstace.media_player_new()
@@ -57,6 +56,9 @@ class Model(qtc.QObject):
         self.callInitTimer = qtc.QTimer()
         self.callInitTimer.setSingleShot(True)
         self.callInitTimer.timeout.connect(self.initiateCall)
+        # signal is calling function setTimeToNext which calls callInitTimer
+        # self.setTimeToNextSignal.connect(self.setTimeToNext)
+        self.setTimeToNextSignal.connect(self.callInitTimer.start)
 
         self.reconnectTimer = qtc.QTimer()
         self.reconnectTimer.setSingleShot(True)
@@ -68,11 +70,13 @@ class Model(qtc.QObject):
         self.resetEndTimer.timeout.connect(self.resetAtEnd)
 
         self.playRequestCorrectSignal.connect(self.playRequestCorrect)
-        self.setTimeToNextSignal.connect(self.setTimeToNext)
         self.setTimeToEndSignal.connect(self.startEndTimer)
 
+        # signal calls timeer directly
         self.checkDualUnplugSignal.connect(self.dualUnplugTimer.start)
         self.dualUnplugTimer.timeout.connect(self.checkDualUnplug)
+
+
 
         self.reset()
 
@@ -307,8 +311,8 @@ class Model(qtc.QObject):
 
         self.vlcPlayer.play()
 
-    def setTimeToNext(self, timeToWait):
-        self.callInitTimer.start(timeToWait)   
+    # def setTimeToNext(self, timeToWait):
+    #     self.callInitTimer.start(timeToWait)   
              
 
     def setTimeReCall(self, _currConvo): 
@@ -544,7 +548,7 @@ class Model(qtc.QObject):
         # print(' - got to continue single unplug')
         # callee just unplugged
         if (self.phoneLine["callee"]["index"] == personIdx):  
-            print('   Unplugging callee')
+            print('   Unplugging callee. stopTime: ' + str(stopTime))
             # Turn off callee LED
             self.setLEDSignal.emit(self.phoneLine["callee"]["index"], False)
 
@@ -574,15 +578,13 @@ class Model(qtc.QObject):
             self.phoneLine["unPlugStatus"] = self.CALLER_UNPLUGGED
             # Turn off caller LED
             self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
+
             # In this case timer can be called directly (without signal)
             # Perhaps because no call is engaged at this point
-            self.setTimeToNext(1000);							
-
+            # self.setTimeToNext(1000);		
+            self.setTimeToNextSignal.emit(1000)					
         else: 
             print('    This should not happen')
-
-
-
 
     def setCallCompleted(self, event=None): #, _currConvo, lineIndex
         # Disable callback if present
