@@ -167,7 +167,7 @@ class MainWindow(qtw.QMainWindow):
                         # Starts bounceTimer which call continuePinCheck
 
                 else:
-                    print(" * got to interupt 12 or greater")
+                    print(" * got to interupt 12 or greater \n")
                     if (pin_flag == 13 and self.pins[13].value == False):
                         # if (self.pins[13].value == False):
                         self.startPressed.emit() # Calls startReset

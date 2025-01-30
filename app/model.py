@@ -330,8 +330,6 @@ class Model(qtc.QObject):
     def handlePlugIn(self, personIdx):
         """triggered by control.py
         """
-        # lineIdx = 0
-
         print(f' - Start handlePlugIn, personIdx: {personIdx}'
               f' is caller plugged: {self.phoneLine["caller"]["isPlugged"]}')
         # ********
@@ -368,13 +366,13 @@ class Model(qtc.QObject):
                     print(f"  - Caller was unplugged")
                     """ more logic here  
                     """
-                    if (self.phoneLine["callee"]["isPlugged"] < 90):
+                    if (self.phoneLine["callee"]["isPlugged"] == True):
                         # if (correct callee??)
                         # Stop Hello/Request
                         self.vlcPlayer.stop()
                         # set line engaged
                         self.phoneLine["unPlugStatus"] = self.NO_UNPLUG_STATUS
-                        self.phoneLine["Engaged"] = True
+                        self.phoneLine["isEngaged"] = True
                         self.phoneLine["caller"]["isPlugged"] = True
                         # Start conversation without the ring
                         # For now anyway can't play full convo without sending event so
@@ -489,8 +487,7 @@ class Model(qtc.QObject):
         else:   
             # Phone line is not engaged -- isEngaged == False
             print(f' - not engaged, callee index: {self.phoneLine["callee"]["index"]}'
-                  f'    caller index: {self.phoneLine["caller"]["index"]}'
-                  )
+                  f'    caller index: {self.phoneLine["caller"]["index"]}')
             # If wrong number, hmm need plug status for wrong number
 
             # # First, maybe this is an unplug of "old" call to free up the plugg
@@ -543,7 +540,6 @@ class Model(qtc.QObject):
         # if such & so do somethingelse
         self.continueSingleEngagedUnplug(self.currPersonIdx, self.currStopTime)
 
-
     def continueSingleEngagedUnplug(self, personIdx, stopTime):
         # print(' - got to continue single unplug')
         # callee just unplugged
@@ -558,10 +554,8 @@ class Model(qtc.QObject):
                 # Mark callee unplugged
                 self.phoneLine["callee"]["isPlugged"] = False
                 self.phoneLine["isEngaged"] = False
-
                 # stop captions
                 self.stopCaptionSignal.emit()
-
                 # Leave caller plugged in, replay hello
                 self.setTimeReCall(self.currConvo)
             else:
@@ -578,10 +572,7 @@ class Model(qtc.QObject):
             self.phoneLine["unPlugStatus"] = self.CALLER_UNPLUGGED
             # Turn off caller LED
             self.setLEDSignal.emit(self.phoneLine["caller"]["index"], False)
-
-            # In this case timer can be called directly (without signal)
-            # Perhaps because no call is engaged at this point
-            # self.setTimeToNext(1000);		
+            # signal calls callInitTimer which calls initiateCall	
             self.setTimeToNextSignal.emit(1000)					
         else: 
             print('    This should not happen')
