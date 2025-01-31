@@ -71,30 +71,23 @@ class Model(qtc.QObject):
 
         self.playRequestCorrectSignal.connect(self.playRequestCorrect)
         self.setTimeToEndSignal.connect(self.startEndTimer)
-
         # signal calls timeer directly
         self.checkDualUnplugSignal.connect(self.dualUnplugTimer.start)
         self.dualUnplugTimer.timeout.connect(self.checkDualUnplug)
-
-
-
         self.reset()
 
     def reset(self):
         self.stopAllAudio()
         self.stopTimers()
-
         # Put pinsIn here in model where it's used more often
         # rather than in control which would require a lot of signaling.
         self.pinsIn = [False,False,False,False,False,False,False,False,False,False,False,False,False,False]
-        
         self.currConvo = 0
         self.currCallerIndex = 0
         self.currCalleeIndex = 0
         # self.whichLineInUse = -1
         self.currStopTime = 0
         self.currPersonIdx = 0
-
         self.incrementJustCalled = False
         # self.reCallLine = 0 # Workaround timer not having params
         self.silencedCallLine = 0 # Workaround timer not having params
@@ -105,7 +98,6 @@ class Model(qtc.QObject):
         self.OP_ONLY_IN_PROGRESS = 2
         self.REPLUG_IN_PROGRESS = 3
         self.CALLER_UNPLUGGED = 5
-
         self.phoneLine = {
                 "isEngaged": False,
                 "unPlugStatus": self.NO_UNPLUG_STATUS,
@@ -114,21 +106,13 @@ class Model(qtc.QObject):
                 # "audioTrack": vlc.MediaPlayer("/home/piswitch/Apps/sb-audio/1-Charlie_Operator.mp3")
             }
 
-        # self.displayTextSignal.emit("Keep your ears open for incoming calls!")
-
     def stopTimers(self):
         if self.callInitTimer.isActive():
             self.callInitTimer.stop()
         if self.reconnectTimer.isActive():
             self.reconnectTimer.stop()
-        # if self.silencedCalTimer.isActive():
-        #     self.silencedCalTimer.stop()
-
 
     def stopAllAudio(self):
-        # if self.callInitTimer.isActive():
-        #     self.callInitTimer.stop()
-
         self.buzzPlayer.stop()
         self.tonePlayer.stop()
         # self.vlcPlayers[0].stop()
@@ -137,10 +121,6 @@ class Model(qtc.QObject):
     def setPinIn(self, pinIdx, value):
         self.pinsIn[pinIdx] = value
 
-    # Remove
-    # def getPinInLine(self, pinIdx):
-    #     return self.pinsInLine[pinIdx]
-    
     # Used by wiggle detect in control
     def getIsPinIn(self, pinIdx):
         return self.pinsIn[pinIdx]
@@ -284,8 +264,6 @@ class Model(qtc.QObject):
 
         print("  - About to detach vlcEvent in PlayRequestCorrect")
         self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached) 
-
-
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             conversations[self.currConvo]["retryAfterWrongFile"] + ".mp3")
         
@@ -296,24 +274,15 @@ class Model(qtc.QObject):
 
     def playFinished(self):
         self.toneEvents.event_detach(vlc.EventType.MediaPlayerEndReached)         
-
         self.displayTextSignal.emit("Congratulations -- you finished your first shift as a switchboard operator!")
         # print(f"-- PlayFullConvo {_currConvo}, lineIndex: {lineIndex}")
-
         media = self.vlcInstance.media_new_path("/home/piswitch/Apps/sb-audio/" + 
             "FinishedActivity.mp3")
         self.vlcEvent.event_detach(vlc.EventType.MediaPlayerEndReached)
-
         self.vlcPlayer.set_media(media)
-
         self.vlcEvent.event_attach(vlc.EventType.MediaPlayerEndReached, 
             self.restartOnEndTimeout) 
-
         self.vlcPlayer.play()
-
-    # def setTimeToNext(self, timeToWait):
-    #     self.callInitTimer.start(timeToWait)   
-             
 
     def setTimeReCall(self, _currConvo): 
         print("got to setTimeReCall")
@@ -332,35 +301,60 @@ class Model(qtc.QObject):
         """
         print(f' - Start handlePlugIn, personIdx: {personIdx}'
               f' is caller plugged: {self.phoneLine["caller"]["isPlugged"]}')
+        #********
+        # Other end of the line -- caller is plugged, so this must be the callee
+        #********/        
+        if (self.phoneLine["caller"]["isPlugged"]): 
+            # caller is plugged
+			# Ignore the following if this is an operator-only call in progress
+            print(' -- else caller plugged. unPlugStatus: ' + str(self.phoneLine["unPlugStatus"]))
+            if (not self.phoneLine["unPlugStatus"] == self.OP_ONLY_IN_PROGRESS):
+                # Whether or not this is correct callee -- turn LED on.
+                self.setLEDSignal.emit(personIdx, True)
+                # Set pinsIn True
+                self.setPinIn(personIdx, True)
+                # Stop the hello operator track,  whether this is the correct
+                # callee or not
+                self.vlcPlayer.stop()
+                # Also stop captions
+                self.stopCaptionSignal.emit()
+                # Set callee -- used by unPlug even if it's the wrong number
+                self.phoneLine["callee"]["index"] = personIdx
+                if (personIdx == self.currCalleeIndex): # Correct callee
+                    print(f" - Plugged into correct callee, idx: {personIdx}")
+                    # Set this line as engaged
+                    self.phoneLine["isEngaged"] = True
+                    # Also set line callee plugged
+                    self.phoneLine["callee"]["isPlugged"] = True
+                    # # Silence incoming Hello/Request, if necessary
+                    # self.vlcPlayers[lineIdx].stop()
+                    self.playConvo(self.currConvo)
+                else: # Wrong number
+                    print("wrong number")
+                    self.phoneLine["unPlugStatus"] = self.WRONG_NUM_IN_PROGRESS
+                    self.playWrongNum(personIdx) 
+            else:
+                print("got to Tressa erroneous plug-in")         
         # ********
         # Fresh plug-in -- aka caller wasn't plugged yet
         # Is this new use of this line -- caller has not been plugged in.
         # *******/
-        if (not self.phoneLine["caller"]["isPlugged"]): # New line - Caller not plugged
+        else: 
+            # New line - Caller not plugged
             # Did user plug into the actual caller?
             if personIdx == self.currCallerIndex: # Correct caller
                 # Turn this LED on
                 self.setLEDSignal.emit(personIdx, True)
                 # Set this person's jack to plugged
                 self.setPinIn(personIdx, True)
-
                 # Set this line as having caller plugged
                 self.phoneLine["caller"]["isPlugged"] = True
                 # Set identity of caller on this line
                 self.phoneLine["caller"]["index"] = personIdx;				
                 # print(f' - Just set caller {self.phoneLine["caller"]["index"]} to True')
-
-                # Set this line in use only we have gotten this success
-                # self.whichLineInUse = lineIdx
-
-                # See software app for extended debug message here
-                # Stop Buzzer. 
                 self.buzzPlayer.stop()
                 # Blinker handdled in control.py
                 self.blinkerStop.emit()
-
-                # print(f" ++ New plugin- prev line in use: {self.prevLineInUse}")
-
                 #  Handle case where caller was unplugged
                 if (self.phoneLine["unPlugStatus"] == self.CALLER_UNPLUGGED):
                     print(f"  - Caller was unplugged")
@@ -375,74 +369,16 @@ class Model(qtc.QObject):
                         self.phoneLine["isEngaged"] = True
                         self.phoneLine["caller"]["isPlugged"] = True
                         # Start conversation without the ring
-                        # For now anyway can't play full convo without sending event so
-
-
-                        # self.playFullConvoNoEvent(self.currConvo)
                         print("  - playFullConvo w/o event ")
                         # None param is for non-existant event
                         self.playFullConvo(None, self.currConvo)
-
-
                     else:
                         print('   We should not get here');
-
                 else: # Regular, just play incoming Hello/Request
                     self.playHello(self.currConvo) 
-                
-                # Set prev for use in next call. Here??
-                # print(f"setting prev line in use from {p}")
-                # self.prevLineInUse = self.whichLineInUse
             else:
                 print("wrong jack -- or wrong line")
                 self.displayTextSignal.emit("That's not the jack for the person who is asking you to connect!")
-
-        #********
-        # Other end of the line -- caller is plugged, so this must be the callee
-        #********/
-        else: # caller is plugged
-			# Ignore the following if this is an operator-only call in progress
-            print(' -- else caller plugged. unPlugStatus: ' + str(self.phoneLine["unPlugStatus"]))
-            if (not self.phoneLine["unPlugStatus"] == self.OP_ONLY_IN_PROGRESS):
-
-            
-
-                # print(f"Which line in use: {lineIdx}")
-                # if (lineIdx == self.whichLineInUse): # This is the line in use
-                # Whether or not this is correct callee -- turn LED on.
-                self.setLEDSignal.emit(personIdx, True)
-                # Set pinsIn True
-                self.setPinIn(personIdx, True)
-                # Stop the hello operator track,  whether this is the correct
-                # callee or not
-                self.vlcPlayer.stop()
-                # Also stop captions
-                self.stopCaptionSignal.emit()
-
-
-                # Set callee -- used by unPlug even if it's the wrong number
-                self.phoneLine["callee"]["index"] = personIdx
-                if (personIdx == self.currCalleeIndex): # Correct callee
-                    print(f" - Plugged into correct callee, idx: {personIdx}")
-                    # Set this line as engaged
-                    self.phoneLine["isEngaged"] = True
-                    # Also set line callee plugged
-                    self.phoneLine["callee"]["isPlugged"] = True
-
-                    # # Silence incoming Hello/Request, if necessary
-                    # self.vlcPlayers[lineIdx].stop()
-                    self.playConvo(self.currConvo)
-
-                else: # Wrong number
-                    print("wrong number")
-                    self.phoneLine["unPlugStatus"] = self.WRONG_NUM_IN_PROGRESS
-
-                    self.playWrongNum(personIdx) 
-
-            else:
-        
-                print("got to Tressa erroneous plug-in")
-
 
     def handleUnPlug(self, personIdx): 
         """ triggered by control.py
@@ -482,6 +418,8 @@ class Model(qtc.QObject):
             # and starting timer with this signal
             self.checkDualUnplugSignal.emit(90)
             
+            # continueSingleEngagedUnplug could come back here
+            # if I handle dual unplug in control.py
 
         # ---- Conversation NOT in progress --- 
         else:   
@@ -531,9 +469,9 @@ class Model(qtc.QObject):
         self.setPinIn(personIdx, False)
         print(f" - pin {personIdx} is now {self.pinsIn[personIdx]}")
 
-    def setDualUnplugTimer(self):
-        # Timer will call 
-        self.dualUnplugTimer.start(90)
+    # def setDualUnplugTimer(self):
+    #     # Timer will call 
+    #     self.dualUnplugTimer.start(90)
 
     def checkDualUnplug(self):
         print(' - got to checkDualUnplug, need to actually check!')
